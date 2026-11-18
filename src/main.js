@@ -140,7 +140,7 @@ async function playRound(ids) {
   for (const res of result.sectors) {
     ui.stepRound(res.id);
     await world.focus(res.id, single && selected === res.id ? 0.3 : 0.8);
-    await sectors[res.id].play(res, ctx);
+    try { await sectors[res.id].play(res, ctx); } catch (err) { console.error(`${res.id} animation failed`, err); }
     base += res.win;
     total = base;
     ui.setWin(total);

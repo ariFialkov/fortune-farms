@@ -8,28 +8,29 @@ export const BETS = [100, 200, 500, 1000, 2500, 5000];
 export const START_BALANCE = 100000;
 
 // four value tiers: 0 common, 1 fine, 2 rare, 3 legendary
-const tierOf = (v) => (v >= 50 ? 3 : v >= 5 ? 2 : v >= 0.5 ? 1 : 0);
+export const tierOf = (v) => (v >= 50 ? 3 : v >= 5 ? 2 : v >= 0.5 ? 1 : 0);
 export const TIER_NAMES = ['Common', 'Fine', 'Rare', 'Legendary'];
 // `icon` is the key of the prize's 3D model / symbol (defaults to its id)
 const P = (id, name, v, w, extra = {}) => ({ id, name, icon: id, v, w, tier: tierOf(v), ...extra });
 
+// Low-value crops are deliberately common so the field pays out constantly while it is mown.
 const CROPS = [
-  P('wheat', 'Wheat', 0.02, 300),
-  P('corn', 'Corn', 0.03, 240),
-  P('carrot', 'Carrot', 0.04, 190),
-  P('potato', 'Potato', 0.05, 150),
-  P('cabbage', 'Cabbage', 0.06, 120),
-  P('onion', 'Onion', 0.08, 90),
-  P('radish', 'Radish', 0.1, 70),
-  P('strawberry', 'Strawberry', 0.15, 50),
-  P('chilli', 'Chilli Pepper', 0.25, 30),
-  P('pumpkin', 'Pumpkin', 0.4, 18),
-  P('sugarbeet', 'Sugar Beet', 0.6, 10),
-  P('watermelon', 'Watermelon', 1, 6),
-  P('ginger', 'Ginger', 2, 2.5),
-  P('lavender', 'Lavender', 5, 0.9),
-  P('wasabi', 'Wasabi', 15, 0.25),
-  P('saffron', 'Saffron', 100, 0.04),
+  P('wheat', 'Wheat', 0.01, 600),
+  P('corn', 'Corn', 0.02, 380),
+  P('carrot', 'Carrot', 0.03, 240),
+  P('potato', 'Potato', 0.04, 150),
+  P('cabbage', 'Cabbage', 0.05, 95),
+  P('onion', 'Onion', 0.06, 62),
+  P('radish', 'Radish', 0.08, 40),
+  P('strawberry', 'Strawberry', 0.1, 26),
+  P('chilli', 'Chilli Pepper', 0.15, 16),
+  P('pumpkin', 'Pumpkin', 0.25, 9),
+  P('sugarbeet', 'Sugar Beet', 0.4, 5),
+  P('watermelon', 'Watermelon', 0.75, 2.6),
+  P('ginger', 'Ginger', 1.5, 1.1),
+  P('lavender', 'Lavender', 5, 0.38),
+  P('wasabi', 'Wasabi', 15, 0.1),
+  P('saffron', 'Saffron', 100, 0.016),
 ];
 
 const MILK = P('milk', 'Milk', 0.04, 0);
@@ -97,12 +98,17 @@ const FISH = [
 
 const HONEY_PER_L = 0.5;
 const MAD_PER_L = 5;
-const honey = (l, w) => P(`honey_${l}`, `Honey ${l} L`, +(l * HONEY_PER_L).toFixed(2), w, { litres: l, icon: 'honey' });
-const mad = (l, w) => P(`mad_${l}`, `Mad Honey ${l} L`, +(l * MAD_PER_L).toFixed(2), w, { litres: l, mad: true, icon: 'madhoney' });
-const HONEY_TRICKLE = honey(0.2, 0);
+// Honey pours a random amount inside a band [lo, hi] litres; the table entry carries the
+// band's mean so RTP is solved exactly, and the engine draws the actual litres per round.
+const pour = (madHoney, lo, hi, w) => {
+  const rate = madHoney ? MAD_PER_L : HONEY_PER_L, mean = (lo + hi) / 2;
+  return P(`${madHoney ? 'mad' : 'honey'}_${lo}`, madHoney ? 'Mad Honey' : 'Honey', mean * rate, w,
+    { litres: mean, range: [lo, hi], rate, vmax: hi * rate, mad: madHoney, icon: madHoney ? 'madhoney' : 'honey' });
+};
+const HONEY_TRICKLE = pour(false, 0.08, 0.3, 0);
 const HONEYS = [
-  honey(0.5, 15), honey(1, 30), honey(1.5, 22), honey(2, 16), honey(3, 10), honey(4, 6), honey(6, 3), honey(10, 1),
-  mad(0.5, 1.2), mad(1, 0.8), mad(2, 0.4), mad(4, 0.15), mad(10, 0.03),
+  pour(false, 0.3, 0.99, 15), pour(false, 1, 1.5, 30), pour(false, 1.5, 2.3, 22), pour(false, 2.3, 3.4, 16), pour(false, 3.4, 4.8, 10), pour(false, 4.8, 6.6, 6), pour(false, 6.6, 8.5, 3), pour(false, 8.5, 10, 1),
+  pour(true, 0.3, 0.99, 1.2), pour(true, 1, 1.7, 0.8), pour(true, 1.7, 3, 0.4), pour(true, 3, 5.5, 0.15), pour(true, 5.5, 10, 0.03),
 ];
 
 const WINES = [
@@ -148,7 +154,7 @@ export const SECTORS = {
       { id: 'turbo', name: 'Turbo Combine', icon: 'combine_turbo', stake: 2, desc: 'Every crop worth ×2' },
       { id: 'mega', name: 'Golden Harvester', icon: 'combine_mega', stake: 4, desc: 'Every crop worth ×4' },
     ],
-    model: (u) => ({ valueMult: u.stake, groups: [{ n: 16, filler: null, table: CROPS }] }),
+    model: (u) => ({ valueMult: u.stake, groups: [{ n: 36, filler: null, table: CROPS }] }),
   },
   dairy: {
     id: 'dairy', name: 'Dairy', icon: 'milk', core: true, blurb: 'Cows queue for the Milk-o-matic 3000.',
@@ -230,8 +236,8 @@ const CHEESE = ['goatcheese', 'feta', 'mozzarella'];
 export const COMBOS = [
   { id: 'bacon_eggs', name: 'Bacon & Eggs', icon: 'bacon_eggs', bonus: 0.2, desc: '8+ unbroken eggs and 2+ Bacon Strips',
     needs: [need('poultry', anyPrize, 8), need('slaughter', ['bacon'], 2)] },
-  { id: 'steak_frites', name: 'Steak Frites', icon: 'steak_frites', bonus: 0.5, desc: 'Ribeye or Filet Mignon with 2+ Potatoes',
-    needs: [need('slaughter', ['ribeye', 'filet']), need('crops', ['potato'], 2)] },
+  { id: 'steak_frites', name: 'Steak Frites', icon: 'steak_frites', bonus: 0.5, desc: 'Ribeye or Filet Mignon with 3+ Potatoes',
+    needs: [need('slaughter', ['ribeye', 'filet']), need('crops', ['potato'], 3)] },
   { id: 'guacamole', name: 'Guacamole', icon: 'guacamole', bonus: 1, desc: 'Avocado, Onion and Chilli Pepper',
     needs: [need('orchard', ['avocado']), need('crops', ['onion']), need('crops', ['chilli'])] },
   { id: 'cheeseburger', name: 'Cheeseburger', icon: 'cheeseburger', bonus: 1, desc: 'Ground Beef and any Cheese (needs Milk-o-matic 4000)',
@@ -246,8 +252,8 @@ export const COMBOS = [
     needs: [need('fishery', anyPrize, 1, 3), need('slaughter', ['ribeye', 'brisket', 'filet'])] },
   { id: 'truffle_omelette', name: 'Truffle Omelette', icon: 'truffle_omelette', bonus: 1.5, desc: 'A Black or White Truffle and 8+ unbroken eggs',
     needs: [need('mycology', ['blacktruffle', 'whitetruffle']), need('poultry', anyPrize, 8)] },
-  { id: 'fish_chips', name: 'Fish & Chips', icon: 'fish_chips', bonus: 0.3, desc: '9+ Perch and 2+ Potatoes',
-    needs: [need('fishery', anyPrize, 9, 1), need('crops', ['potato'], 2)] },
+  { id: 'fish_chips', name: 'Fish & Chips', icon: 'fish_chips', bonus: 0.3, desc: '9+ Perch and 3+ Potatoes',
+    needs: [need('fishery', anyPrize, 9, 1), need('crops', ['potato'], 3)] },
   { id: 'mad_tea', name: 'Mad Tea Party', icon: 'mad_tea', bonus: 50, desc: 'Mad Honey with Golden Teacher or Blue Meanies',
     needs: [need('apiary', (p) => p.mad), need('mycology', ['goldenteacher', 'bluemeanies'])] },
 ];

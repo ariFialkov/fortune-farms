@@ -1,7 +1,7 @@
 // Outcome engine. A round's full result is determined up-front (before any
 // animation plays) from probability tables that are solved analytically so that
 // expected return == RTP * stake, for every sector, upgrade and bet mode.
-import { RTP, SECTORS, COMBOS, CORE, ALL } from './data.js';
+import { RTP, SECTORS, COMBOS, CORE, ALL, tierOf } from './data.js';
 
 export const cryptoRng = () => {
   const a = new Uint32Array(1);
@@ -41,9 +41,15 @@ function rollSector(model, bet, rng) {
       for (const e of g.entries) {
         if ((r -= e.p) < 0) { prize = e.prize; break; }
       }
-      const value = prize ? Math.round(prize.v * model.valueMult * bet) : 0;
+      let value = prize ? Math.round(prize.v * model.valueMult * bet) : 0, tier = prize ? prize.tier : 0, litres;
+      if (prize?.range) {
+        // continuous prize: draw the amount inside its band (mean == table value, so RTP is unchanged)
+        litres = Math.round((prize.range[0] + rng() * (prize.range[1] - prize.range[0])) * 100) / 100;
+        value = Math.round(litres * prize.rate * model.valueMult * bet);
+        tier = tierOf(litres * prize.rate);
+      }
       win += value;
-      slots.push({ g: gi, prize, value, tier: prize ? prize.tier : 0 });
+      slots.push({ g: gi, prize, value, tier, litres });
     }
   });
   return { id: model.id, upgrade: model.upgrade, stake: model.stake * bet, slots, win };
@@ -146,7 +152,7 @@ export function sectorInfo(sid, upgrades = {}) {
   const table = sec.paytable || sec.model(u).groups.flatMap((g) => g.table);
   let top;
   if (model.groups.length > 1) top = model.groups.reduce((s, g) => s + g.n * Math.max(...g.entries.map((e) => e.prize?.v || 0)), 0);
-  else top = Math.max(...model.groups[0].entries.map((e) => e.prize?.v || 0));
+  else top = Math.max(...model.groups[0].entries.map((e) => e.prize?.vmax ?? e.prize?.v ?? 0));
   return {
     stakeMult: u.stake,
     valueMult: model.valueMult,

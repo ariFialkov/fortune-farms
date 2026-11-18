@@ -67,10 +67,10 @@ export function createApiary(scene, pos) {
   const setFill = (l) => { fill.scale.y = Math.max(0.02, Math.min(1.35, 0.1 + l * 0.125)); fill.position.y = 0.64 + fill.scale.y / 2; };
 
   async function play(res, ctx) {
-    const slot = res.slots[0], pz = slot.prize;
-    const perL = slot.value / pz.litres;
+    const slot = res.slots[0], pz = slot.prize, L = slot.litres;
+    const perL = slot.value / L;
     const baseRate = pz.mad ? perL / 10 : perL;            // value per litre before the mad reveal
-    const dur = 1.3 + Math.min(pz.litres, 10) * 0.48;
+    const dur = 1.3 + Math.min(L, 10) * 0.48;
     const madAt = pz.mad ? Math.min(0.9, dur * 0.35) : Infinity;
     honeyMat.color.setHex(HONEY); honeyMat.emissive.setHex(0x7a4a00); honeyMat.emissiveIntensity = 0.35;
     setFill(0);
@@ -79,10 +79,10 @@ export function createApiary(scene, pos) {
     ctx.sfx('pour');
     let shown = 0, isMad = false, drip = 0;
     // value shown = normal-rate honey until the reveal, then the remainder at mad rate
-    const madStartL = pz.mad ? (madAt / dur) * pz.litres : 0;
-    const valueAt = (l) => (!pz.mad ? l * perL : l <= madStartL ? l * baseRate : madStartL * baseRate + ((l - madStartL) / (pz.litres - madStartL)) * (slot.value - madStartL * baseRate));
+    const madStartL = pz.mad ? (madAt / dur) * L : 0;
+    const valueAt = (l) => (!pz.mad ? l * perL : l <= madStartL ? l * baseRate : madStartL * baseRate + ((l - madStartL) / (L - madStartL)) * (slot.value - madStartL * baseRate));
     await tween(dur, (k, raw) => {
-      const t = raw * dur, litres = pz.litres * k;
+      const t = raw * dur, litres = L * k;
       if (!isMad && t >= madAt) {
         isMad = true;
         honeyMat.color.setHex(MAD); honeyMat.emissive.setHex(0x8a2be2); honeyMat.emissiveIntensity = 1.1;
@@ -97,7 +97,7 @@ export function createApiary(scene, pos) {
       needle.rotation.z = -Math.min(1.3, litres * 0.13) + Math.sin(raw * 60) * 0.03;
       const v = Math.round(valueAt(litres));
       if (v > shown) { ctx.add(v - shown); shown = v; }
-      label.set(`${ctx.ico(isMad ? 'madhoney' : 'honey')} <b>${litres.toFixed(1)} L</b><i>+${shown.toLocaleString()}</i>`);
+      label.set(`${ctx.ico(isMad ? 'madhoney' : 'honey')} <b>${litres.toFixed(2)} L</b><i>+${shown.toLocaleString()}</i>`);
       if ((drip += 1) % 9 === 0) { ctx.sfx('tick'); puff(g, { x: CX + rand(-0.4, 0.4), y: top + 0.1, z: CZ + rand(-0.4, 0.4) }, { color: isMad ? MAD : HONEY, n: 1, size: 0.1, up: 0.5 }); }
     }, ease.linear);
     if (slot.value > shown) ctx.add(slot.value - shown);
@@ -105,7 +105,7 @@ export function createApiary(scene, pos) {
     // last drips
     for (let i = 0; i < 2; i++) { puff(g, { x: CX, y: SPOUT_Y - 0.2, z: CZ }, { color: isMad ? MAD : HONEY, n: 1, size: 0.1, up: -1.2, spread: 0.05 }); await wait(0.18); }
     label.remove();
-    ctx.popup({ icon: pz.icon, label: pz.name, value: slot.value, tier: slot.tier, pos: wp(g, CX, 3, CZ + 1), add: false, named: true });
+    ctx.popup({ icon: pz.icon, label: `${pz.name} · ${L.toFixed(2)} L`, value: slot.value, tier: slot.tier, pos: wp(g, CX, 3, CZ + 1), add: false, named: true });
     await wait(1);
   }
 
