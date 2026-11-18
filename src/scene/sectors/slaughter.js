@@ -1,5 +1,5 @@
 // SLAUGHTERHOUSE — animals queue at the mysterious "free massages" door; cuts roll out on a conveyor.
-import { rbox, cyl, ball, at, rot, grp, plot, wp, puff, emojiSprite, mat, cow, pig, chicken, sign, noShadow } from '../kit.js';
+import { rbox, cyl, ball, at, rot, grp, plot, wp, puff, emojiSprite, mat, cow, pig, chicken, sign, noShadow , applyPlace, toLocal } from '../kit.js';
 import { tween, wait, ease, rand, walkTo, moveTo, ticker, scaleTo } from '../anim.js';
 
 const DOOR = { x: -1.4, z: -0.6 };
@@ -8,9 +8,9 @@ const BELT_Z = -2.9;
 
 export function createSlaughter(scene, pos) {
   const g = grp();
-  g.position.set(pos[0], 0, pos[1]);
+  applyPlace(g, pos);
   scene.add(g);
-  g.add(at(rbox(1.8, 0.1, 7, 0xecd49a, 0.05), DOOR.x, 0.1, 3), at(rbox(6.6, 0.1, 1.8, 0xecd49a, 0.05), -4.2, 0.1, 6.2));
+  g.add(at(rbox(1.8, 0.1, 7, 0xd9d4c8, 0.05), DOOR.x, 0.1, 3), at(rbox(6.6, 0.1, 1.8, 0xd9d4c8, 0.05), -4.2, 0.1, 6.2));
 
   const b = grp();
   b.add(at(rbox(5.6, 3.6, 4.6, 0x8f8aa8, 0.2), 0, 1.8, 0));

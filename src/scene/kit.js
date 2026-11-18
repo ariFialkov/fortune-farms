@@ -253,5 +253,14 @@ export function prism(w, h, d, color) {
 
 // Ground pad for a sector plot, and local->world helper for sector groups.
 export const plot = (w, d, color, y = 0.03) => at(rbox(w, 0.16, d, color, 0.08), 0, y, 0);
-export const wp = (group, x, y, z) => new THREE.Vector3(x, y, z).add(group.position);
+export const wp = (group, x, y, z) => group.localToWorld(new THREE.Vector3(x, y, z));
+// Place a sector group from a layout entry ({x, z, rot, scale}).
+export function applyPlace(g, a) {
+  g.position.set(a.x, 0, a.z);
+  g.rotation.y = a.rot || 0;
+  g.scale.setScalar(a.scale || 1);
+  g.updateMatrixWorld(true);
+}
+// World [x, z] -> the group's local {x, z}.
+export const toLocal = (g, [x, z]) => { const v = g.worldToLocal(new THREE.Vector3(x, 0, z)); return { x: v.x, z: v.z }; };
 export const lerp = (a, b, k) => a + (b - a) * k;

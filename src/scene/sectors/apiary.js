@@ -1,6 +1,6 @@
 // APIARY — hives drain through a big funnel into a pot on a scale; value climbs while honey pours.
 import * as THREE from 'three';
-import { rbox, cyl, ball, at, rot, grp, plot, wp, puff, burst, mat, noShadow, bush } from '../kit.js';
+import { rbox, cyl, ball, at, rot, grp, plot, wp, puff, burst, mat, noShadow, bush , applyPlace, toLocal } from '../kit.js';
 import { tween, wait, ease, rand, ticker } from '../anim.js';
 
 const HONEY = 0xf5a623, MAD = 0xb04dff;
@@ -14,11 +14,12 @@ function hive(c) {
 
 export function createApiary(scene, pos) {
   const g = grp();
-  g.position.set(pos[0], 0, pos[1]);
+  applyPlace(g, pos);
   scene.add(g);
-  g.add(at(cyl(7.6, 7.6, 0.06, 0xa6e070, 28), 0, 0.03, 0));
-  for (const [x, z, s] of [[5.6, -5.2, 1], [-5.8, 4.8, 0.9], [5.2, 5.6, 1.1]]) g.add(at(bush(s, 0x5cbd4c), x, 0, z));
-  for (let i = 0; i < 26; i++) g.add(at(noShadow(ball(0.14, [0xffd23f, 0xff8fb1, 0xffffff, 0xb08cff][i % 4], 6)), rand(-6.5, 6.5), 0.18, rand(-6.5, 6.5)));
+  g.add(at(rbox(9.6, 0.08, 20.5, 0xa6e070, 0.04), 0, 0.03, 0));
+  for (let i = 0; i < 40; i++) g.add(at(noShadow(ball(0.14, [0xffd23f, 0xff8fb1, 0xffffff, 0xb08cff][i % 4], 6)), rand(-4.4, 4.4), 0.18, rand(-9.8, 9.8)));
+  // rows of ordinary hives along the meadow
+  [[-2.6, 5.6], [0, 5.9], [2.6, 5.6], [-1.4, 8.4], [1.4, 8.4], [-2.6, -8.6], [0.2, -8.2], [2.8, -8.8]].forEach(([x, z], i) => g.add(at(hive(i % 2 ? 0xffd23f : 0xffb347), x, 0.05, z)));
 
   const HX = -2.4, HZ = -2.6, TOP = 4.3;   // hive tower
   const CX = 1.4, CZ = 1.2;                // collection pot, out front where you can see it

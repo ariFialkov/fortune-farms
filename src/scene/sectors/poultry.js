@@ -1,5 +1,5 @@
 // POULTRY — hens queue for the "chicken outhouse"; eggs drop into the nest (and sometimes break).
-import { rbox, cyl, ball, at, rot, scl, grp, plot, wp, puff, emojiSprite, mat, chicken, prism, torus, idleBob, noShadow } from '../kit.js';
+import { rbox, cyl, ball, at, rot, scl, grp, plot, wp, puff, emojiSprite, mat, chicken, prism, torus, idleBob, noShadow , applyPlace, toLocal } from '../kit.js';
 import { tween, wait, ease, rand, walkTo, moveTo, ticker, scaleTo, arcTo } from '../anim.js';
 
 const OUT = { x: 3.6, z: 2.2 };   // outhouse position
@@ -24,9 +24,9 @@ function makeEgg(id) {
 
 export function createPoultry(scene, pos) {
   const g = grp();
-  g.position.set(pos[0], 0, pos[1]);
+  applyPlace(g, pos);
   scene.add(g);
-  g.add(at(rbox(13, 0.1, 1.5, 0xecd49a, 0.05), 0, 0.1, ROW_Z));
+  g.add(at(rbox(13, 0.1, 1.5, 0xd9d4c8, 0.05), 0, 0.1, ROW_Z));
 
   // coop
   const coop = grp(

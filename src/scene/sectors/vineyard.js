@@ -1,6 +1,5 @@
 // VINEYARD — a gust knocks grapes into the tubs, farmers stomp, bottles (maybe) pop out.
-import { yardSpot, gate } from '../layout.js';
-import { rbox, cyl, ball, at, rot, grp, plot, wp, puff, emojiSprite, mat, farmer, noShadow } from '../kit.js';
+import { rbox, cyl, ball, at, rot, grp, plot, wp, puff, emojiSprite, mat, farmer, noShadow , applyPlace, toLocal } from '../kit.js';
 import { tween, wait, ease, rand, moveTo, arcTo, ticker, walkTo } from '../anim.js';
 
 const TUB_Z = 2.6;
@@ -8,17 +7,17 @@ const tubX = (i) => -5.5 + i * 2.2;
 
 export function createVineyard(scene, pos) {
   const g = grp();
-  g.position.set(pos[0], 0, pos[1]);
+  applyPlace(g, pos);
   scene.add(g);
   // terraced hill at the back with three vine rows
-  g.add(at(rbox(14.4, 0.5, 6.4, 0x7cc653, 0.25), 0, 0.25, -3.8), at(rbox(14, 0.5, 3.6, 0x6fbd4b, 0.25), 0, 0.7, -5));
+  g.add(at(rbox(30.6, 0.5, 6.4, 0x7cc653, 0.25), 0, 0.25, -3.8), at(rbox(30.2, 0.5, 3.6, 0x6fbd4b, 0.25), 0, 0.7, -5));
   const vines = [];
   [[-6, 0.95], [-4, 0.95], [-2, 0.5]].forEach(([z, y]) => {
-    g.add(at(rbox(13.4, 0.08, 0.08, 0x8a5a2b, 0.03), 0, y + 1.25, z));
-    for (let i = 0; i < 7; i++) {
-      const x = -6.3 + i * 2.1;
+    g.add(at(rbox(29.6, 0.08, 0.08, 0x8a5a2b, 0.03), 0, y + 1.25, z));
+    for (let i = 0; i < 15; i++) {
+      const x = -14.7 + i * 2.1;
       g.add(at(cyl(0.08, 0.08, 1.4, 0x8a5a2b, 6), x, y + 0.7, z));
-      if (i < 6) {
+      if (i < 14) {
         const v = grp(at(ball(0.6, 0x4a9e45, 10), 0, 0, 0), at(ball(0.45, 0x5cb04c, 10), 0.5, 0.15, 0), at(ball(0.42, 0x5cb04c, 10), -0.5, 0.1, 0));
         for (let k = 0; k < 3; k++) v.add(at(noShadow(grp(ball(0.13, 0x7b2d8e, 6), at(ball(0.11, 0x8e3aa3, 6), 0.1, -0.12, 0), at(ball(0.1, 0x7b2d8e, 6), -0.05, -0.22, 0))), rand(-0.7, 0.7), -0.25, 0.5));
         v.position.set(x + 1.05, y + 0.95, z);
@@ -45,25 +44,24 @@ export function createVineyard(scene, pos) {
     tubs.push(tub);
     const f = farmer([0xe5533d, 0x2ec4b6, 0xffb347, 0x9b5de5, 0xe5533d, 0x2ec4b6][i], 0x3f6fb5);
     f.scale.setScalar(0.85);
-    const [yx, yz] = yardSpot(118 + i * 15, 6.2 + (i % 2) * 1.3), [gx, gz] = gate('vineyard');
     f.userData.spot = { x, y: 0, z: 0.6 };
-    f.userData.yard = { x: yx - pos[0], z: yz - pos[1] };
-    f.userData.out = { x: gx - pos[0], z: gz - pos[1] };
+    f.userData.yard = toLocal(g, [-16.2 + i * 1.5, 2.6 + (i % 2) * 1.3]);
     f.position.set(f.userData.yard.x, 0, f.userData.yard.z);
-    f.rotation.y = -Math.PI / 4;
+    f.rotation.y = -Math.PI / 2;
     g.add(f);
     farmers.push(f);
   }
+  // route between the farmhouse forecourt and the vineyard (around the house)
+  const ROUTE = [toLocal(g, [-19.5, 1.5]), toLocal(g, [-19.5, -17]), { x: 8.6, z: 4.4 }, { x: 7.4, z: 0.6 }];
   ticker((dt, t) => vines.forEach((v, i) => { v.rotation.z = Math.sin(t * 1.3 + i) * 0.03 * (1 + gust * 8); }));
   let gust = 0;
 
   async function play(res, ctx) {
     // the stompers jog over from the farmhouse while the gust does its work
     const arrive = Promise.all(farmers.map(async (f, i) => {
-      await wait(i * 0.08);
-      await walkTo(f, f.userData.out.x, f.userData.out.z, 15, 0.14);
-      await walkTo(f, f.userData.spot.x + 3.5, 5.2, 18, 0.14);
-      await walkTo(f, f.userData.spot.x, f.userData.spot.z + 0.01, 12, 0.14);
+      await wait((5 - i) * 0.07);
+      for (const p of ROUTE) await walkTo(f, p.x, p.z, 21, 0.14);
+      await walkTo(f, f.userData.spot.x, f.userData.spot.z, 16, 0.14);
     }));
     // gust knocks the grapes off the vines and into the tubs
     ctx.sfx('wind');
@@ -127,7 +125,14 @@ export function createVineyard(scene, pos) {
     await wait(0.5);
     tubs.forEach((t) => { t.userData.must.visible = false; });
     await Promise.all(farmers.map((f) => arcTo(f, { x: f.userData.spot.x, y: 0, z: 4.6 }, 0.35, 1.2)));
-    farmers.forEach((f) => walkTo(f, f.userData.out.x, f.userData.out.z, 11, 0.12).then(() => walkTo(f, f.userData.yard.x, f.userData.yard.z, 9, 0.12)).then(() => { f.rotation.y = -Math.PI / 4; }));
+    farmers.forEach(async (f, i) => {
+      await wait(i * 0.1);
+      await walkTo(f, 8.6, 4.4, 10, 0.12);
+      await walkTo(f, ROUTE[1].x, ROUTE[1].z, 10, 0.12);
+      await walkTo(f, ROUTE[0].x, ROUTE[0].z, 10, 0.12);
+      await walkTo(f, f.userData.yard.x, f.userData.yard.z, 9, 0.12);
+      f.rotation.y = -Math.PI / 2;
+    });
   }
 
   return { group: g, setUpgrade() {}, play };

@@ -1,17 +1,17 @@
 // ORCHARDS — a gust (or an earthquake) shakes the trees; fruit rains down at random.
-import { rbox, at, grp, plot, wp, puff, emojiSprite, tree, noShadow } from '../kit.js';
+import { rbox, at, grp, plot, wp, puff, emojiSprite, tree, noShadow , applyPlace, toLocal } from '../kit.js';
 import { tween, wait, ease, rand, pick, moveTo, ticker } from '../anim.js';
 
 const FRUIT_COLS = [0xe5383b, 0xff9f1c, 0xffd23f, 0xff8fa3, 0xe5383b, 0xb5179e, 0xffd23f, 0xff9f1c, 0xe5383b];
 
 export function createOrchard(scene, pos) {
   const g = grp();
-  g.position.set(pos[0], 0, pos[1]);
+  applyPlace(g, pos);
   scene.add(g);
   const trees = [];
-  for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) {
-    const t = tree(1.05, [0x4fb04a, 0x5cbd4c, 0x49a84f][(r + c) % 3], FRUIT_COLS[r * 3 + c]);
-    t.position.set(-4.9 + c * 4.7 + (r === 1 ? 1.5 : r === 2 ? -0.5 : 0) + rand(-0.4, 0.4), 0, -4.6 + r * 4.4 + rand(-0.5, 0.5));
+  for (let r = 0; r < 5; r++) for (let c = 0; c < 3; c++) {
+    const t = tree(1.05, [0x4fb04a, 0x5cbd4c, 0x49a84f][(r + c) % 3], FRUIT_COLS[(r * 3 + c) % 9]);
+    t.position.set(-4.7 + c * 4.7 + rand(-0.35, 0.35), 0, -9.4 + r * 4.7 + rand(-0.35, 0.35));
     t.scale.setScalar(rand(0.9, 1.12));
     g.add(t);
     trees.push(t);
@@ -34,7 +34,7 @@ export function createOrchard(scene, pos) {
 
   function gustStreak() {
     const s = emojiSprite(quake ? '💥' : '💨', rand(1, 1.7));
-    const z = rand(-7, 7), y = rand(1.5, 4.5);
+    const z = rand(-11, 11), y = rand(1.5, 4.5);
     s.position.set(-9, y, z);
     s.material.opacity = 0.85;
     g.add(s);

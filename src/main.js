@@ -5,7 +5,8 @@ import './ui/styles.css';
 import * as THREE from 'three';
 import { SECTORS, ALL, BETS, START_BALANCE } from './math/data.js';
 import { rollRound, roundCost } from './math/engine.js';
-import { createWorld, SECTOR_POS } from './scene/world.js';
+import { createWorld } from './scene/world.js';
+import { AREAS, SECTOR_POS } from './scene/layout.js';
 import { clock, wait } from './scene/anim.js';
 import { burst } from './scene/kit.js';
 import { createCrops } from './scene/sectors/crops.js';
@@ -32,7 +33,7 @@ clock.speed = state.speed;
 // ---------- scene ----------
 const world = createWorld(document.getElementById('scene'));
 const make = { crops: createCrops, dairy: createDairy, poultry: createPoultry, slaughter: createSlaughter, orchard: createOrchard, fishery: createFishery, apiary: createApiary, vineyard: createVineyard, mycology: createMycology };
-const sectors = Object.fromEntries(ALL.map((id) => [id, make[id](world.scene, SECTOR_POS[id])]));
+const sectors = Object.fromEntries(ALL.map((id) => [id, make[id](world.scene, AREAS[id])]));
 ALL.forEach((id) => sectors[id].setUpgrade(state.upgrades[id] || 0));
 
 let busy = false;

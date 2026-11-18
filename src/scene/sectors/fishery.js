@@ -1,7 +1,7 @@
 // FISHERY — four net pens dump their fish into a tube that counts them into the processor.
 import * as THREE from 'three';
 import { SECTORS } from '../../math/data.js';
-import { rbox, cyl, ball, at, rot, grp, plot, wp, puff, emojiSprite, mat, torus, noShadow, sign } from '../kit.js';
+import { rbox, cyl, ball, at, rot, grp, plot, wp, puff, emojiSprite, mat, torus, noShadow, sign , applyPlace, toLocal } from '../kit.js';
 import { tween, wait, ease, rand, moveTo, ticker, arcTo } from '../anim.js';
 
 const PENS = [[-4.2, -3.6], [-0.4, -4.4], [-4.6, 0.4], [-0.8, -0.4]];
@@ -11,10 +11,12 @@ const MACHINE = new THREE.Vector3(4.6, 0, 4.4);
 
 export function createFishery(scene, pos) {
   const g = grp();
-  g.position.set(pos[0], 0, pos[1]);
+  applyPlace(g, pos);
   scene.add(g);
   g.add(at(cyl(6.6, 6.6, 0.2, 0xf5e2a8, 40), -2, 0.06, -1.8));
-  const pond = at(cyl(6.1, 6.1, 0.2, mat(0x45b5e8, { transparent: true, opacity: 0.92 }), 40), -2, 0.12, -1.8);
+  const pondMat = mat(0x45b5e8, {});
+  g.add(at(cyl(4.8, 4.8, 0.2, 0xf5e2a8, 32), 1.2, 0.058, -8.6), noShadow(at(cyl(4.3, 4.3, 0.2, pondMat, 32), 1.2, 0.118, -8.6)));
+  const pond = at(cyl(6.1, 6.1, 0.2, pondMat, 40), -2, 0.12, -1.8);
   pond.castShadow = false;
   g.add(pond);
   g.add(at(rbox(3.4, 0.2, 1.2, 0xc9945a, 0.06), 2.6, 0.35, -1.2));

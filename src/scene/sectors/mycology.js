@@ -1,7 +1,6 @@
 // MYCOLOGY — farmers walk truffle pigs on leashes; prizes pop up as each pig finds them.
 import * as THREE from 'three';
-import { yardSpot, gate } from '../layout.js';
-import { rbox, cyl, ball, cone, at, rot, grp, plot, wp, puff, emojiSprite, farmer, pig, pine, tree, prism, noShadow } from '../kit.js';
+import { rbox, cyl, ball, cone, at, rot, grp, plot, wp, puff, emojiSprite, farmer, pig, pine, tree, prism, noShadow , applyPlace, toLocal } from '../kit.js';
 import { tween, wait, ease, rand, walkTo, ticker, arcTo } from '../anim.js';
 
 function shroom(s, cap) {
@@ -10,7 +9,7 @@ function shroom(s, cap) {
 
 export function createMycology(scene, pos) {
   const g = grp();
-  g.position.set(pos[0], 0, pos[1]);
+  applyPlace(g, pos);
   scene.add(g);
   g.add(at(cyl(8.2, 8.2, 0.1, 0x7a6248, 28), 0.4, 0.06, 0.4), at(cyl(7.4, 7.4, 0.1, 0x6b8f4a, 28), 0.6, 0.09, 0.6));
   // forest backdrop
@@ -30,10 +29,9 @@ export function createMycology(scene, pos) {
     f.scale.setScalar(0.85);
     const home = { x: -2.6 + i * 1.5, z: -3.4 + i * 0.5 };
     p.position.set(home.x + 1.2, 0, home.z + 0.9);
-    const [yx, yz] = yardSpot(304 + i * 17, 6.2 + (i % 2) * 1.2), [gx, gz] = gate('mycology');
-    const yard = { x: yx - pos[0], z: yz - pos[1] }, out = { x: gx - pos[0], z: gz - pos[1] };
+    const yard = toLocal(g, [-6.2 + i * 1.5, 2.8 + (i % 2) * 1.2]), out = toLocal(g, [-1.5, -9]);
     f.position.set(yard.x, 0, yard.z);
-    f.rotation.y = -Math.PI / 4;
+    f.rotation.y = -Math.PI / 2;
     p.rotation.y = -0.6;
     const leash = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]), new THREE.LineBasicMaterial({ color: 0x5a3a1e }));
     leash.frustumCulled = false;
@@ -57,8 +55,8 @@ export function createMycology(scene, pos) {
     // the foragers jog over from the farmhouse to collect their pigs
     await Promise.all(teams.map(async (t, ti) => {
       await wait(ti * 0.12);
-      await walkTo(t.f, t.out.x, t.out.z, 15, 0.14);
-      await walkTo(t.f, t.home.x, t.home.z, 17, 0.14);
+      await walkTo(t.f, t.out.x, t.out.z, 16, 0.14);
+      await walkTo(t.f, t.home.x, t.home.z, 20, 0.14);
       t.leash.visible = true;
     }));
     await Promise.all(teams.map(async (t, ti) => {
@@ -94,7 +92,7 @@ export function createMycology(scene, pos) {
       await walkTo(t.p, t.home.x + 1.2, t.home.z + 0.9, 7, 0.14);
       t.p.rotation.y = -0.6;
       t.leash.visible = false;
-      walkTo(t.f, t.out.x, t.out.z, 11, 0.12).then(() => walkTo(t.f, t.yard.x, t.yard.z, 9, 0.12)).then(() => { t.f.rotation.y = -Math.PI / 4; });
+      walkTo(t.f, t.out.x, t.out.z, 11, 0.12).then(() => walkTo(t.f, t.yard.x, t.yard.z, 9, 0.12)).then(() => { t.f.rotation.y = -Math.PI / 2; });
     }));
   }
 

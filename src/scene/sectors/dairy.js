@@ -1,5 +1,5 @@
 // DAIRY — cows queue single-file for the Milk-o-matic 3000; products pop out of the packager.
-import { rbox, cyl, ball, at, rot, grp, plot, wp, puff, emojiSprite, mat, cow, fence, sign, idleBob, noShadow } from '../kit.js';
+import { rbox, cyl, ball, at, rot, grp, plot, wp, puff, emojiSprite, mat, cow, fence, sign, idleBob, noShadow , applyPlace, toLocal } from '../kit.js';
 import { tween, wait, ease, rand, walkTo, moveTo, ticker, scaleTo } from '../anim.js';
 
 const LANE = 2.6;
@@ -7,7 +7,7 @@ const ENTRY = 1.0, EXIT = 5.6;
 
 export function createDairy(scene, pos) {
   const g = grp();
-  g.position.set(pos[0], 0, pos[1]);
+  applyPlace(g, pos);
   scene.add(g);
   g.add(at(rbox(8.4, 0.1, 6.6, 0xa7dc6e, 0.05), -2.9, 0.1, -3.4));
   g.add(at(rbox(6.4, 0.1, 6.2, 0xd8d3c8, 0.05), 3.4, 0.06, 3.6));
