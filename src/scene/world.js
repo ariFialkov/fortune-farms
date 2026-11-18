@@ -1,13 +1,18 @@
 // Renderer, isometric camera rig, lighting, the island and its decor.
 import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { rbox, cyl, ball, cone, prism, at, rot, grp, mat, tree, pine, bush, rock, sign, noShadow, fence, puff } from './kit.js';
 import { update as animUpdate, tween, ticker, ease } from './anim.js';
 
 import { AREAS, SECTOR_POS, PLOT, ROAD, HOUSE, DRIVE, COURT, WALKS, OVERVIEW } from './layout.js';
 export { SECTOR_POS };
 
-const FOV = 30;
+const FOV = 36;
 const YAW = Math.PI / 4;
+const HAZE = 0xdcf0b4;
 
 function seeded(seed) {
   return () => {
@@ -150,17 +155,24 @@ export function createWorld(canvas) {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, mobile ? 1.75 : 2));
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.NeutralToneMapping;
+  renderer.toneMappingExposure = 1.08;
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x8fd65a);
+  scene.background = new THREE.Color(HAZE);
+  scene.fog = new THREE.Fog(HAZE, 150, 420);
   const camera = new THREE.PerspectiveCamera(FOV, 1, 1, 900);
 
-  scene.add(new THREE.HemisphereLight(0xffffff, 0xa6d98a, 1.15));
-  const sun = new THREE.DirectionalLight(0xfff1d0, 1.9);
-  sun.position.set(-60, 95, 35);
+  // golden-hour key light from the left, cool sky fill, warm rim from behind
+  scene.add(new THREE.HemisphereLight(0xd9ecff, 0x9fd070, 0.95));
+  const sun = new THREE.DirectionalLight(0xffdfa8, 2.5);
+  sun.position.set(-95, 62, 48);
+  const rim = new THREE.DirectionalLight(0xfff3d0, 0.75);
+  rim.position.set(50, 45, -90);
+  scene.add(rim);
   sun.castShadow = true;
   sun.shadow.mapSize.set(mobile ? 2048 : 4096, mobile ? 2048 : 4096);
-  Object.assign(sun.shadow.camera, { left: -105, right: 105, top: 105, bottom: -105, near: 1, far: 260 });
+  Object.assign(sun.shadow.camera, { left: -105, right: 105, top: 105, bottom: -105, near: 1, far: 320 });
   sun.shadow.bias = -0.0004;
   sun.shadow.normalBias = 0.04;
   scene.add(sun);
@@ -235,8 +247,8 @@ export function createWorld(canvas) {
     if (inPlot(x, z) && free(x, z, 1.6)) { woods.add(x, z, 0.8 + rnd() * 0.4, rnd() < 0.25); boxes.push([x - 2.5, z - 2.5, x + 2.5, z + 2.5]); n++; }
   }
   // the countryside beyond the fence
-  for (let i = 0; i < 520; i++) {
-    const x = rnd() * 300 - 150, z = rnd() * 300 - 150;
+  for (let i = 0; i < 1500; i++) {
+    const x = rnd() * 560 - 330, z = rnd() * 560 - 330;
     if (Math.abs(x) < F + 2.5 && z > -F - 2.5 && z < fz + 1) continue;
     if (z > fz - 1 && z < ROAD.z1 + 3) continue;
     woods.add(x, z, 0.9 + rnd() * 0.7, rnd() < 0.4);
@@ -255,10 +267,41 @@ export function createWorld(canvas) {
   fl.forEach(([x, z], i) => { flowers.setMatrixAt(i, fm.makeTranslation(x, 0.1, z)); flowers.setColorAt(i, fc.setHex([0xffffff, 0xffd84d, 0xff8fb1, 0xb08cff][i % 4])); });
   scene.add(flowers);
 
+  // --- drifting golden motes for a little sparkle ---
+  {
+    const N = 170, pos = new Float32Array(N * 3), seed = new Float32Array(N);
+    for (let i = 0; i < N; i++) { pos[i * 3] = rnd() * 110 - 55; pos[i * 3 + 1] = 1 + rnd() * 13; pos[i * 3 + 2] = rnd() * 100 - 55; seed[i] = rnd() * 6.28; }
+    const c = document.createElement('canvas'); c.width = c.height = 64;
+    const x = c.getContext('2d'), gr = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, 'rgba(255,250,210,1)'); gr.addColorStop(0.3, 'rgba(255,225,120,.55)'); gr.addColorStop(1, 'rgba(255,210,80,0)');
+    x.fillStyle = gr; x.fillRect(0, 0, 64, 64);
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const motes = new THREE.Points(geo, new THREE.PointsMaterial({ map: new THREE.CanvasTexture(c), size: 1.1, transparent: true, opacity: 0.8, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
+    motes.frustumCulled = false;
+    scene.add(motes);
+    ticker((dt, t) => {
+      for (let i = 0; i < N; i++) {
+        pos[i * 3 + 1] += dt * (0.25 + (i % 5) * 0.06);
+        pos[i * 3] += Math.sin(t * 0.6 + seed[i]) * dt * 0.5;
+        if (pos[i * 3 + 1] > 15) pos[i * 3 + 1] = 1;
+      }
+      geo.attributes.position.needsUpdate = true;
+    });
+  }
+
+  // --- post: soft bloom + tone mapping (multisampled so edges stay clean) ---
+  const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { samples: 4, type: THREE.HalfFloatType }));
+  composer.setPixelRatio(renderer.getPixelRatio());
+  composer.addPass(new RenderPass(scene, camera));
+  composer.addPass(new UnrealBloomPass(new THREE.Vector2(256, 256), 0.32, 0.7, 0.86));
+  composer.addPass(new OutputPass());
+
   // --- camera rig ---
-  const rig = { target: new THREE.Vector3(0, 0, 0), dist: 120, radius: 40, focus: null };
+  const rig = { target: new THREE.Vector3(0, 0, 0), dist: 120, radius: 40, focus: null, yaw: YAW };
+  let goalElev = 0.56;
   const insets = { top: 60, bottom: 180 };
-  let elev = 0.72;
+  let elev = 0.56;
   let shakeAmt = 0;
   const size = { w: 1, h: 1 };
 
@@ -272,20 +315,28 @@ export function createWorld(canvas) {
   }
   function goal(id) {
     const portrait = size.h > size.w;
-    elev = portrait ? 0.9 : 0.72;
-    if (!id) return { target: new THREE.Vector3(OVERVIEW.x, 0, OVERVIEW.z), dist: fit(portrait ? 44 : 47, 4) };
-    const [x, z] = SECTOR_POS[id];
-    return { target: new THREE.Vector3(x, 0, z), dist: fit(AREAS[id].view, 2.5) };
+    goalElev = id ? (portrait ? 0.6 : 0.5) : portrait ? 0.74 : 0.56;
+    const keep = elev;
+    elev = goalElev;   // fit() frames for the angle we are heading to
+    const out = !id
+      ? { target: new THREE.Vector3(OVERVIEW.x, 0, OVERVIEW.z), dist: fit(portrait ? 38 : 39, 5), elev: goalElev, yaw: YAW }
+      : { target: new THREE.Vector3(SECTOR_POS[id][0], 0, SECTOR_POS[id][1]), dist: fit(AREAS[id].view, 4.5), elev: goalElev, yaw: YAW + (AREAS[id].yaw || 0) };
+    elev = keep;
+    return out;
   }
   function place() {
     const v = THREE.MathUtils.degToRad(FOV) / 2;
     // shift the look-at point so the subject is centred in the area not covered by HUD
     const px = (insets.bottom - insets.top) / 2;
     const shift = ((px / size.h) * 2 * rig.dist * Math.tan(v)) / Math.sin(elev);
-    const tx = rig.target.x + (Math.sin(YAW) * shift), tz = rig.target.z + (Math.cos(YAW) * shift);
+    // slow cinematic drift: a gentle orbit and breathing dolly
+    const now = performance.now() / 1000;
+    const yaw = rig.yaw + Math.sin(now * 0.21) * 0.035, dist = rig.dist * (1 + Math.sin(now * 0.16 + 1) * 0.012);
+    const tx = rig.target.x + (Math.sin(yaw) * shift), tz = rig.target.z + (Math.cos(yaw) * shift);
     const sx = shakeAmt ? (Math.random() - 0.5) * shakeAmt : 0, sy = shakeAmt ? (Math.random() - 0.5) * shakeAmt : 0;
     const ce = Math.cos(elev), se = Math.sin(elev);
-    camera.position.set(tx + Math.sin(YAW) * ce * rig.dist + sx, se * rig.dist + sy, tz + Math.cos(YAW) * ce * rig.dist);
+    camera.position.set(tx + Math.sin(yaw) * ce * dist + sx, se * dist + sy, tz + Math.cos(yaw) * ce * dist);
+    scene.fog.near = dist * 1.05 + 15; scene.fog.far = dist * 2 + 190;
     camera.lookAt(tx + sx, sy, tz);
     camera.updateMatrixWorld();
   }
@@ -294,17 +345,18 @@ export function createWorld(canvas) {
     if (!w || !h) return;
     size.w = w; size.h = h;
     renderer.setSize(w, h, false);
+    composer.setSize(w, h);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
     const g = goal(rig.focus);
-    rig.target.copy(g.target); rig.dist = g.dist;
+    rig.target.copy(g.target); rig.dist = g.dist; rig.yaw = g.yaw; elev = g.elev;
   }
   let camAnim = 0;
   function focus(id, dur = 0.9) {
     rig.focus = id;
-    const g = goal(id), from = { t: rig.target.clone(), d: rig.dist }, my = ++camAnim;
+    const g = goal(id), from = { t: rig.target.clone(), d: rig.dist, y: rig.yaw, e: elev }, my = ++camAnim;
     // camera moves use real time so they feel the same at any game speed
-    if (dur <= 0) { rig.target.copy(g.target); rig.dist = g.dist; return Promise.resolve(); }
+    if (dur <= 0) { rig.target.copy(g.target); rig.dist = g.dist; rig.yaw = g.yaw; elev = g.elev; return Promise.resolve(); }
     const t0 = performance.now();
     return new Promise((res) => {
       const step = () => {
@@ -312,6 +364,8 @@ export function createWorld(canvas) {
         const k = Math.min((performance.now() - t0) / (dur * 1000), 1), e = ease.inOut(k);
         rig.target.lerpVectors(from.t, g.target, e);
         rig.dist = from.d + (g.dist - from.d) * e;
+        rig.yaw = from.y + (g.yaw - from.y) * e;
+        elev = from.e + (g.elev - from.e) * e;
         if (k < 1) requestAnimationFrame(step); else res();
       };
       step();
@@ -341,7 +395,7 @@ export function createWorld(canvas) {
     animUpdate(dt);
     place();
     for (const fn of frameFns) fn(dt);
-    renderer.render(scene, camera);
+    composer.render();
     requestAnimationFrame(frame);
   }
   new ResizeObserver(resize).observe(canvas);

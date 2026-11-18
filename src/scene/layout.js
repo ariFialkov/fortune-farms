@@ -2,15 +2,15 @@
 // the road (left -> right), z runs from the back of the farm (-50) to the road (+).
 // Each area: centre, optional rotation/scale of its model, and camera framing radius.
 export const AREAS = {
-  dairy:     { x: -29,   z: 25,    scale: 1,    view: 11 },
-  poultry:   { x: -30,   z: 9,     scale: 0.8,  view: 9 },
-  slaughter: { x: -28.5, z: -8,    scale: 1,    view: 11 },
-  apiary:    { x: -44.5, z: -2,    scale: 1,    view: 12 },
-  orchard:   { x: -11,   z: 20.5,  scale: 1,    view: 14.5 },
-  crops:     { x: 13.5,  z: 13,    scale: 1,    view: 24.5, rot: Math.PI / 2 },
-  fishery:   { x: 39.5,    z: 19,    scale: 1.4,  view: 15 },
-  vineyard:  { x: -24,   z: -29,   scale: 1.12, view: 19 },
-  mycology:  { x: 15,    z: -31,   scale: 1.3,  view: 14 },
+  dairy:     { x: -29,   z: 25,    scale: 1,    view: 8.2, yaw: -0.12 },
+  poultry:   { x: -30,   z: 9,     scale: 0.8,  view: 6.8, yaw: 0 },
+  slaughter: { x: -28.5, z: -8,    scale: 1,    view: 8.6, yaw: -0.1 },
+  apiary:    { x: -44.5, z: -2,    scale: 1,    view: 9.5, yaw: 0.1 },
+  orchard:   { x: -11,   z: 20.5,  scale: 1,    view: 11.5, yaw: 0 },
+  crops:     { x: 13.5,  z: 13,    scale: 1,    view: 22, yaw: 0, rot: Math.PI / 2 },
+  fishery:   { x: 39.5,    z: 19,    scale: 1.4,  view: 12, yaw: 0.08 },
+  vineyard:  { x: -24,   z: -29,   scale: 1.12, view: 14.5, yaw: -0.08 },
+  mycology:  { x: 15,    z: -31,   scale: 1.3,  view: 11, yaw: 0 },
 };
 export const SECTOR_POS = Object.fromEntries(Object.entries(AREAS).map(([k, a]) => [k, [a.x, a.z]]));
 
@@ -19,7 +19,7 @@ export const ROAD = { z0: 37, z1: 45 };       // public road along the front
 export const HOUSE = { x: -11, z: -6 };
 export const DRIVE = { x0: -2.6, x1: 1.6, z0: 1, z1: ROAD.z0 };   // driveway strip
 export const COURT = { x0: -17, x1: 1.6, z0: -1.4, z1: 4.6 };     // gravel forecourt
-export const OVERVIEW = { x: 5, z: 1.5 };
+export const OVERVIEW = { x: 5, z: 8 };
 
 // Stone walking paths (world polylines).
 export const WALKS = [
