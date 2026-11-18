@@ -319,7 +319,7 @@ export function createWorld(canvas) {
     const keep = elev;
     elev = goalElev;   // fit() frames for the angle we are heading to
     const out = !id
-      ? { target: new THREE.Vector3(OVERVIEW.x, 0, OVERVIEW.z), dist: fit(portrait ? 38 : 39, 5), elev: goalElev, yaw: YAW }
+      ? { target: new THREE.Vector3(OVERVIEW.x, 0, OVERVIEW.z), dist: fit(portrait ? 38 : 35.5, 5), elev: goalElev, yaw: YAW }
       : { target: new THREE.Vector3(SECTOR_POS[id][0], 0, SECTOR_POS[id][1]), dist: fit(AREAS[id].view, 4.5), elev: goalElev, yaw: YAW + (AREAS[id].yaw || 0) };
     elev = keep;
     return out;

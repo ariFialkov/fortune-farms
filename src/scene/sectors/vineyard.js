@@ -1,5 +1,5 @@
 // VINEYARD — a gust knocks grapes into the tubs, farmers stomp, bottles (maybe) pop out.
-import { rbox, cyl, ball, at, rot, grp, plot, wp, puff, emojiSprite, mat, farmer, noShadow , applyPlace, toLocal } from '../kit.js';
+import { rbox, cyl, ball, at, rot, grp, plot, wp, puff, prizeModel, model, gust, mat, farmer, noShadow , applyPlace, toLocal } from '../kit.js';
 import { tween, wait, ease, rand, moveTo, arcTo, ticker, walkTo } from '../anim.js';
 
 const TUB_Z = 2.6;
@@ -67,10 +67,8 @@ export function createVineyard(scene, pos) {
     ctx.sfx('wind');
     tween(0.4, (k) => { gust = k; });
     for (let i = 0; i < 6; i++) {
-      const s = emojiSprite('💨', rand(1, 1.6));
-      s.position.set(-9, rand(1.5, 3.5), rand(-6.5, -1));
-      g.add(s);
-      moveTo(s, { x: 9 }, rand(0.7, 1), ease.linear).then(() => g.remove(s));
+      const z = rand(-6.5, -1);
+      gust(g, { x: -15, y: rand(1.5, 3.5), z }, { x: 15, y: rand(1.5, 3.5), z }, rand(0.8, 1.1), rand(0.9, 1.4));
     }
     await wait(0.35);
     await Promise.all(Array.from({ length: 30 }, async (_, k) => {
@@ -110,14 +108,14 @@ export function createVineyard(scene, pos) {
       stompers[i].on = false;
       farmers[i].position.y = 0.45;
       if (slot.prize) {
-        const bottle = emojiSprite(slot.prize.icon, 1 + slot.tier * 0.25);
-        bottle.position.set(x, 0.4, TUB_Z + 1.3);
+        const bottle = prizeModel(slot.prize, 1.4);
+        bottle.position.set(x, 0.75, TUB_Z + 1.3);
         g.add(bottle);
-        arcTo(bottle, { x, y: 0.75, z: TUB_Z + 1.6 }, 0.3, 1).then(() => wait(1.6)).then(() => g.remove(bottle));
+        arcTo(bottle, { x, y: 0.75, z: TUB_Z + 1.7 }, 0.3, 1).then(() => wait(1.6)).then(() => g.remove(bottle));
         ctx.prize(slot, wp(g, x, 2, TUB_Z + 1.4));
       } else {
         puff(g, { x, y: 0.4, z: TUB_Z + 1.2 }, { color: 0xd9c7e0, n: 5, size: 0.13 });
-        ctx.miss(wp(g, x, 1.3, TUB_Z + 1.2), '💧');
+        ctx.miss(wp(g, x, 1.3, TUB_Z + 1.2), 'drop');
       }
       await wait(0.22);
     }

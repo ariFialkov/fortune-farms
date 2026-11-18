@@ -1,7 +1,7 @@
 // FISHERY — four net pens dump their fish into a tube that counts them into the processor.
 import * as THREE from 'three';
 import { SECTORS } from '../../math/data.js';
-import { rbox, cyl, ball, at, rot, grp, plot, wp, puff, emojiSprite, mat, torus, noShadow, sign , applyPlace, toLocal } from '../kit.js';
+import { rbox, cyl, ball, at, rot, grp, plot, wp, puff, prizeModel, model, gust, mat, torus, noShadow, sign , applyPlace, toLocal } from '../kit.js';
 import { tween, wait, ease, rand, moveTo, ticker, arcTo } from '../anim.js';
 
 const PENS = [[-4.2, -3.6], [-0.4, -4.4], [-4.6, 0.4], [-0.8, -0.4]];
@@ -50,7 +50,7 @@ export function createFishery(scene, pos) {
   );
   machine.position.copy(MACHINE);
   g.add(machine);
-  const screenIcon = emojiSprite('🐟', 0.8);
+  const screenIcon = grp(model('catfish', 0.8));
   screenIcon.position.set(MACHINE.x, 1.25, MACHINE.z + 1.5);
   g.add(screenIcon);
 
@@ -60,7 +60,8 @@ export function createFishery(scene, pos) {
     if ((jump += dt) > 2.4) {
       jump = rand(0.8);
       const [x, z] = PENS[Math.floor(rand(4))];
-      const s = emojiSprite('🐟', 0.5);
+      const s = model('catfish', 0.55);
+      s.rotation.y = rand(6);
       s.position.set(x, 0.3, z);
       g.add(s);
       arcTo(s, { x: x + rand(-0.6, 0.6), y: 0.3, z: z + rand(-0.6, 0.6) }, 0.6, 1.1).then(() => g.remove(s));
@@ -76,8 +77,8 @@ export function createFishery(scene, pos) {
       const slots = res.slots.filter((s) => s.g === gi);
       const info = SECTORS.fishery.paytable[gi];
       let count = 0, sub = 0;
-      const show = () => label.set(`${info.icon} ${info.name} <b>×${count}</b><i>+${sub.toLocaleString()}</i>`);
-      screenIcon.material.map = emojiSprite(info.icon).material.map;
+      const show = () => label.set(`${ctx.ico(info.icon)} ${info.name} <b>×${count}</b><i>+${sub.toLocaleString()}</i>`);
+      screenIcon.clear(); screenIcon.add(model(info.icon, 0.85));
       show();
       ctx.sfx('splash');
       puff(g, { x: pen.position.x, y: 0.5, z: pen.position.z }, { color: 0xdff6ff, n: 8, size: 0.16, up: 1.4, spread: 1.2 });
@@ -86,7 +87,7 @@ export function createFishery(scene, pos) {
       for (const slot of slots) {
         if (!slot.prize) { await wait(0.025); continue; }
         jobs.push((async () => {
-          const s = emojiSprite(slot.prize.icon, 0.7 + slot.tier * 0.5);
+          const s = prizeModel(slot.prize, 0.85);
           s.position.set(pen.position.x + rand(-0.5, 0.5), 1.6, pen.position.z + rand(-0.5, 0.5));
           g.add(s);
           await arcTo(s, FUNNEL, 0.3, 1.6);
@@ -101,14 +102,14 @@ export function createFishery(scene, pos) {
         await wait(gi === 3 ? 0.28 : 0.085 + gi * 0.02);
       }
       await Promise.all(jobs);
-      if (!count) ctx.miss(wp(g, pen.position.x, 2.4, pen.position.z), '🕸️');
+      if (!count) ctx.miss(wp(g, pen.position.x, 2.4, pen.position.z), 'puff');
       else if (gi < 3) ctx.popup({ icon: info.icon, label: `${info.name} ×${count}`, value: sub, tier: sub >= res.stake * 0.5 ? 1 : 0, pos: wp(g, MACHINE.x, 3.2, MACHINE.z), add: false, named: true });
       await wait(0.3);
       moveTo(pen, { y: 0.3 }, 0.3, ease.in);
       moveTo(net, { y: -0.5 }, 0.3);
       await wait(0.2);
     }
-    label.set(`🎣 Total haul <i>+${haul.toLocaleString()}</i>`);
+    label.set(`${ctx.ico('trout')} Total haul <i>+${haul.toLocaleString()}</i>`);
     await wait(1);
     label.remove();
   }

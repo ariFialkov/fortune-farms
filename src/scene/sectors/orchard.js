@@ -1,5 +1,5 @@
 // ORCHARDS — a gust (or an earthquake) shakes the trees; fruit rains down at random.
-import { rbox, at, grp, plot, wp, puff, emojiSprite, tree, noShadow , applyPlace, toLocal } from '../kit.js';
+import { rbox, at, grp, plot, wp, puff, prizeModel, model, gust, tree, noShadow , applyPlace, toLocal } from '../kit.js';
 import { tween, wait, ease, rand, pick, moveTo, ticker } from '../anim.js';
 
 const FRUIT_COLS = [0xe5383b, 0xff9f1c, 0xffd23f, 0xff8fa3, 0xe5383b, 0xb5179e, 0xffd23f, 0xff9f1c, 0xe5383b];
@@ -33,13 +33,9 @@ export function createOrchard(scene, pos) {
   function setUpgrade(i) { quake = i === 1; }
 
   function gustStreak() {
-    const s = emojiSprite(quake ? '💥' : '💨', rand(1, 1.7));
-    const z = rand(-11, 11), y = rand(1.5, 4.5);
-    s.position.set(-9, y, z);
-    s.material.opacity = 0.85;
-    g.add(s);
-    if (quake) { s.position.set(rand(-6, 6), 0.4, z); tween(0.5, (k) => { s.material.opacity = 1 - k; s.scale.setScalar(1 + k); }).then(() => g.remove(s)); }
-    else moveTo(s, { x: 9 }, rand(0.7, 1.1), ease.linear).then(() => g.remove(s));
+    const z = rand(-11, 11);
+    if (quake) puff(g, { x: rand(-6, 6), y: 0.3, z }, { color: 0xc9a063, n: 5, size: 0.3, up: 1.6, spread: 1.2 });
+    else gust(g, { x: -9, y: rand(1.5, 4.5), z }, { x: 9, y: rand(1.5, 4.5), z: z + rand(-1, 1) }, rand(0.7, 1.1), rand(0.8, 1.3));
   }
 
   async function play(res, ctx) {
@@ -54,18 +50,18 @@ export function createOrchard(scene, pos) {
       const tr = pick(trees);
       const a = rand(6.28), r = rand(0.9, 1.9);
       const x = tr.position.x + Math.cos(a) * r, z = tr.position.z + Math.sin(a) * r;
-      const sp = emojiSprite(slot.prize ? slot.prize.icon : '🍃', slot.prize ? 0.85 + slot.tier * 0.25 : 0.5);
+      const sp = slot.prize ? prizeModel(slot.prize, 1.1) : model('leaf', 0.45);
       sp.position.set(x, 2.6, z);
       g.add(sp);
       if (!slot.prize) {
-        await tween(0.9, (k) => { sp.position.set(x + Math.sin(k * 9) * 0.5 + k * 1.5, 2.6 - k * 2.4, z); sp.material.opacity = 1 - k * k; }, ease.linear);
+        await tween(0.9, (k) => { sp.position.set(x + Math.sin(k * 9) * 0.5 + k * 1.5, 2.6 - k * 2.4, z); sp.rotation.z = k * 7; sp.scale.setScalar(Math.max(0.01, 0.45 * (1 - k * k))); }, ease.linear);
         return g.remove(sp);
       }
-      await moveTo(sp, { y: 0.5 }, 0.42, ease.in);
+      await moveTo(sp, { y: 0.6 }, 0.42, ease.in);
       ctx.sfx('thud');
       puff(g, { x, y: 0.3, z }, { color: 0xcdeaa0, n: 4, size: 0.12 });
       ctx.prize(slot, wp(g, x, 1.5, z));
-      await tween(0.3, (k, raw) => { sp.position.y = 0.5 + Math.sin(raw * Math.PI) * 0.5; }, ease.linear);
+      await tween(0.3, (k, raw) => { sp.position.y = 0.6 + Math.sin(raw * Math.PI) * 0.5; }, ease.linear);
       await wait(0.6);
       g.remove(sp);
     }));

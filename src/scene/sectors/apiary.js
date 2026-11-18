@@ -86,8 +86,8 @@ export function createApiary(scene, pos) {
       if (!isMad && t >= madAt) {
         isMad = true;
         honeyMat.color.setHex(MAD); honeyMat.emissive.setHex(0x8a2be2); honeyMat.emissiveIntensity = 1.1;
-        ctx.popup({ icon: '🔮', label: 'MAD HONEY! ×10', value: 0, tier: 3, pos: wp(g, CX, 4, CZ), add: false, named: true, noValue: true });
-        burst(scene, wp(g, CX, 2.5, CZ), '✨', 12, 0.6);
+        ctx.popup({ icon: 'madhoney', label: 'MAD HONEY! ×10', value: 0, tier: 2, pos: wp(g, CX, 4, CZ), add: false, named: true, noValue: true });
+        burst(scene, wp(g, CX, 2.5, CZ), 12, 0.6);
       }
       const top = fill.position.y + fill.scale.y / 2;
       const wob = 1 + Math.sin(raw * 90) * 0.12;
@@ -97,7 +97,7 @@ export function createApiary(scene, pos) {
       needle.rotation.z = -Math.min(1.3, litres * 0.13) + Math.sin(raw * 60) * 0.03;
       const v = Math.round(valueAt(litres));
       if (v > shown) { ctx.add(v - shown); shown = v; }
-      label.set(`${isMad ? '🔮' : '🍯'} <b>${litres.toFixed(1)} L</b><i>+${shown.toLocaleString()}</i>`);
+      label.set(`${ctx.ico(isMad ? 'madhoney' : 'honey')} <b>${litres.toFixed(1)} L</b><i>+${shown.toLocaleString()}</i>`);
       if ((drip += 1) % 9 === 0) { ctx.sfx('tick'); puff(g, { x: CX + rand(-0.4, 0.4), y: top + 0.1, z: CZ + rand(-0.4, 0.4) }, { color: isMad ? MAD : HONEY, n: 1, size: 0.1, up: 0.5 }); }
     }, ease.linear);
     if (slot.value > shown) ctx.add(slot.value - shown);

@@ -1,26 +1,12 @@
 // POULTRY — hens queue for the "chicken outhouse"; eggs drop into the nest (and sometimes break).
-import { rbox, cyl, ball, at, rot, scl, grp, plot, wp, puff, emojiSprite, mat, chicken, prism, torus, idleBob, noShadow , applyPlace, toLocal } from '../kit.js';
+import { rbox, cyl, ball, at, rot, scl, grp, plot, wp, puff, prizeModel, model, gust, mat, chicken, prism, torus, idleBob, noShadow , applyPlace, toLocal } from '../kit.js';
 import { tween, wait, ease, rand, walkTo, moveTo, ticker, scaleTo, arcTo } from '../anim.js';
 
 const OUT = { x: 3.6, z: 2.2 };   // outhouse position
 const FLOOR = 1.5;                 // outhouse floor height
 const ROW_Z = 5.6;
 
-const EGG_LOOK = {
-  egg: [0.2, 0xfffaf0], quailegg: [0.14, 0xd9c7a0], duckegg: [0.22, 0xcfeee6], ostrichegg: [0.36, 0xfff3d6],
-  easteregg: [0.23, 0xff8fb1], faberge: [0.26, 0x1fb5a8], goldenegg: [0.3, 0xffc928],
-};
-
-function makeEgg(id) {
-  const [r, c] = EGG_LOOK[id];
-  const special = id === 'goldenegg' ? mat(c, { emissive: 0xa86a00, emissiveIntensity: 0.7 }) : c;
-  const e = grp(scl(ball(r, special, 14), 1, 1.3, 1));
-  if (id === 'easteregg') e.add(rot(torus(r * 0.98, 0.035, 0x7ad3ff, 16), Math.PI / 2), at(rot(torus(r * 0.8, 0.03, 0xfff27a, 16), Math.PI / 2), 0, r * 0.6, 0));
-  if (id === 'faberge') e.add(rot(torus(r, 0.04, 0xffd23f, 16), Math.PI / 2), torus(r * 1.15, 0.03, 0xffd23f, 16), at(noShadow(ball(0.07, 0xff5a8a, 8)), 0, r * 1.3, 0));
-  if (id === 'quailegg') for (let i = 0; i < 5; i++) e.add(at(noShadow(ball(0.03, 0x6b4a36, 6)), rand(-r, r) * 0.7, rand(-r, r), r * 0.85));
-  e.userData.r = r * 1.3;
-  return e;
-}
+const makeEgg = (id) => model(id, id === 'egg' ? 0.5 : id === 'quailegg' ? 0.36 : id === 'ostrichegg' ? 0.85 : id === 'goldenegg' ? 0.75 : 0.6);
 
 export function createPoultry(scene, pos) {
   const g = grp();
@@ -64,8 +50,8 @@ export function createPoultry(scene, pos) {
     rot(at(rbox(1.9, 0.14, 1.9, 0x7b4a3a, 0.05), 0, 2.25, 0), 0, 0, -0.18),
     at(rbox(0.1, 1.3, 0.8, 0x6b4425, 0.04), -0.76, 0.8, 0),
   );
-  const moon = emojiSprite('🌙', 0.6);
-  moon.position.set(0, 1.5, 0.8);
+  const moon = model('moon', 0.5);
+  moon.position.set(0, 1.45, 0.78);
   hut.add(moon);
   hut.position.y = FLOOR;
   out.add(hut);
@@ -123,6 +109,7 @@ export function createPoultry(scene, pos) {
       goHome(h);
       // the drop
       const egg = makeEgg(slot.prize ? slot.prize.id : 'egg');
+      egg.userData.r = egg.scale.x * 0.5;
       const landY = (soft ? 0.72 : 0.4) + egg.userData.r * 0.6;
       egg.position.set(OUT.x, FLOOR, OUT.z);
       g.add(egg);
@@ -132,7 +119,7 @@ export function createPoultry(scene, pos) {
         ctx.sfx('crack');
         puff(g, { x: OUT.x, y: 0.5, z: OUT.z }, { color: 0xffd23f, n: 6, size: 0.14, up: 0.9 });
         puff(g, { x: OUT.x, y: 0.5, z: OUT.z }, { color: 0xffffff, n: 5, size: 0.1, up: 1.2 });
-        ctx.miss(wp(g, OUT.x, 1.2, OUT.z), '🍳');
+        ctx.miss(wp(g, OUT.x, 1.2, OUT.z), 'brokenegg');
         await wait(0.12);
       } else {
         if (soft) tween(0.25, (k, raw) => { pillow.scale.y = 1 - Math.sin(raw * Math.PI) * 0.45; }, ease.linear);

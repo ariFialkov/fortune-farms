@@ -3,6 +3,8 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { tween, ease, rand } from './anim.js';
+import { model } from './models.js';
+export { model };
 
 const mats = new Map();
 export function mat(color, opts) {
@@ -30,27 +32,7 @@ export const scl = (o, x, y = x, z = x) => { o.scale.set(x, y, z); return o; };
 export const grp = (...kids) => { const g = new THREE.Group(); kids.forEach((k) => k && g.add(k)); return g; };
 export const noShadow = (o) => { o.traverse((c) => { c.castShadow = false; }); return o; };
 
-// ---------- emoji sprites & text signs ----------
-const EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
-const emojiTex = new Map();
-export function emojiSprite(emoji, size = 1) {
-  if (!emojiTex.has(emoji)) {
-    const c = document.createElement('canvas');
-    c.width = c.height = 128;
-    const x = c.getContext('2d');
-    x.font = `96px ${EMOJI_FONT}`;
-    x.textAlign = 'center';
-    x.textBaseline = 'middle';
-    x.fillText(emoji, 64, 70);
-    const t = new THREE.CanvasTexture(c);
-    t.colorSpace = THREE.SRGBColorSpace;
-    emojiTex.set(emoji, t);
-  }
-  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: emojiTex.get(emoji), transparent: true, depthWrite: false }));
-  s.scale.setScalar(size);
-  return s;
-}
-
+// ---------- text signs ----------
 export function sign(text, w, h, { bg = '#f7e3b4', fg = '#5a3a1e', font = 'bold 60px "Baloo 2", "Comic Sans MS", "Chalkboard SE", cursive', crude = false, border = '#8a5a2b' } = {}) {
   const c = document.createElement('canvas');
   c.width = 512; c.height = Math.round((512 * h) / w);
@@ -97,18 +79,40 @@ export function puff(parent, pos, { color = 0xffffff, n = 6, spread = 0.6, size 
   }
 }
 
-export function burst(parent, pos, emoji, n = 8, size = 0.5) {
+// A shower of little gold stars.
+export function burst(parent, pos, n = 8, size = 0.5) {
   for (let i = 0; i < n; i++) {
-    const s = emojiSprite(emoji, size);
+    const s = model('star', size * rand(0.6, 1.1));
     s.position.copy(pos);
+    s.rotation.set(rand(6), rand(6), 0);
     parent.add(s);
-    const a = rand(Math.PI * 2), r = rand(0.8, 2.2), h = rand(1.5, 3);
+    const a = rand(Math.PI * 2), r = rand(0.8, 2.4), h = rand(1.5, 3.2), s0 = s.scale.x;
     const x0 = pos.x, y0 = pos.y, z0 = pos.z;
     tween(rand(0.6, 1), (k, raw) => {
       s.position.set(x0 + Math.cos(a) * r * k, y0 + Math.sin(raw * Math.PI) * h, z0 + Math.sin(a) * r * k);
-      s.material.opacity = 1 - raw * raw;
+      s.rotation.y += 0.2;
+      s.scale.setScalar(Math.max(0.001, s0 * (1 - raw * raw)));
     }, ease.out).then(() => parent.remove(s));
   }
+}
+
+// The 3D model for a prize: pops in with a spin, sized up a little for rarer tiers.
+export function prizeModel(prize, size = 1, face = Math.PI / 4) {
+  const m = model(prize.icon, size * (1 + prize.tier * 0.18));
+  const s0 = m.scale.x;
+  tween(0.5, (k, raw) => { m.scale.setScalar(Math.max(0.001, s0 * Math.min(1, raw * 2.2))); m.rotation.y = face + (1 - k) * Math.PI * 2; }, ease.out);
+  return m;
+}
+
+// A white streak of wind blowing from one point to another.
+const gustMat = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.75 });
+export function gust(parent, from, to, dur, size = 1) {
+  const g = grp();
+  [[0, 0, 1], [-1.3, 0.25, 0.7], [-2.3, -0.15, 0.5]].forEach(([x, y, s]) => { const b = new THREE.Mesh(geo('s1,10', () => new THREE.SphereGeometry(1, 10, 8)), gustMat); b.scale.set(0.9 * s * size, 0.16 * s * size, 0.16 * s * size); b.position.set(x * size, y * size, 0); g.add(b); });
+  g.position.set(from.x, from.y, from.z);
+  g.rotation.y = Math.atan2(-(to.z - from.z), to.x - from.x);
+  parent.add(g);
+  return tween(dur, (k) => g.position.set(from.x + (to.x - from.x) * k, from.y + Math.sin(k * 9) * 0.25, from.z + (to.z - from.z) * k), ease.linear).then(() => parent.remove(g));
 }
 
 // ---------- scenery ----------

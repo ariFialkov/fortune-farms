@@ -1,5 +1,5 @@
 // DAIRY — cows queue single-file for the Milk-o-matic 3000; products pop out of the packager.
-import { rbox, cyl, ball, at, rot, grp, plot, wp, puff, emojiSprite, mat, cow, fence, sign, idleBob, noShadow , applyPlace, toLocal } from '../kit.js';
+import { rbox, cyl, ball, at, rot, grp, plot, wp, puff, prizeModel, model, gust, mat, cow, fence, sign, idleBob, noShadow , applyPlace, toLocal } from '../kit.js';
 import { tween, wait, ease, rand, walkTo, moveTo, ticker, scaleTo } from '../anim.js';
 
 const LANE = 2.6;
@@ -58,7 +58,7 @@ export function createDairy(scene, pos) {
     at(rbox(1.8, 0.14, 1.4, 0xffd23f, 0.05), 0, 1.15, 0),
     at(cyl(0.05, 0.05, 0.8, 0xffd23f, 6), 0.5, 1.6, 0), at(noShadow(ball(0.14, mat(0xff5a5f, { emissive: 0xff2222, emissiveIntensity: 0.6 }), 8)), 0.5, 2.05, 0),
   );
-  const cheese = emojiSprite('🧀', 0.9);
+  const cheese = model('cheesewedge', 0.8);
   cheese.position.set(-0.3, 1.75, 0);
   m4000.add(cheese);
   m4000.position.set(3.3, 1.85, LANE + 1.95);
@@ -110,14 +110,9 @@ export function createDairy(scene, pos) {
       puff(g, { x: 2.7, y: 4.4, z: LANE }, { color: 0xffffff, n: 3, size: 0.2 });
       goHome(c);
       // product slides out of the packager slot
-      const item = slot.prize.product
-        ? grp(rbox(0.5, 0.4, 0.5, 0xffe08a, 0.1), at(rbox(0.52, 0.1, 0.52, 0xe5383b, 0.04), 0, 0, 0))
-        : grp(at(cyl(0.2, 0.22, 0.55, 0xffffff, 12), 0, 0, 0), at(cyl(0.1, 0.14, 0.2, 0xffffff, 10), 0, 0.36, 0), at(cyl(0.11, 0.11, 0.08, slot.prize.id === 'chocmilk' ? 0x7b4a2a : 0x2f8fe5, 10), 0, 0.5, 0));
-      item.position.set(3.3, 0.8, LANE + 2.6);
+      const item = prizeModel(slot.prize, 1.0);
+      item.position.set(3.3, 1.05, LANE + 2.6);
       g.add(item);
-      const ico = emojiSprite(slot.prize.icon, 0.7 + slot.tier * 0.2);
-      ico.position.set(0, 0.95, 0);
-      item.add(ico);
       moveTo(item, { z: LANE + 3.7 }, 0.25, ease.out).then(() => wait(0.7)).then(() => scaleTo(item, 0.01, 0.2, ease.in)).then(() => g.remove(item));
       ctx.prize(slot, wp(g, 3.3, 2.2, LANE + 3.5));
       await wait(0.38);

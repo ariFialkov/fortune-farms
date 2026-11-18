@@ -1,6 +1,6 @@
 // MYCOLOGY — farmers walk truffle pigs on leashes; prizes pop up as each pig finds them.
 import * as THREE from 'three';
-import { rbox, cyl, ball, cone, at, rot, grp, plot, wp, puff, emojiSprite, farmer, pig, pine, tree, prism, noShadow , applyPlace, toLocal } from '../kit.js';
+import { rbox, cyl, ball, cone, at, rot, grp, plot, wp, puff, prizeModel, model, gust, farmer, pig, pine, tree, prism, noShadow , applyPlace, toLocal } from '../kit.js';
 import { tween, wait, ease, rand, walkTo, ticker, arcTo } from '../anim.js';
 
 function shroom(s, cap) {
@@ -75,14 +75,14 @@ export function createMycology(scene, pos) {
           ctx.sfx('oink');
           arcTo(t.p, { x, y: 0, z }, 0.3, 0.7);
           puff(g, { x: fx, y: 0.3, z: fz }, { color: 0x7a6248, n: 6, size: 0.14, up: 1 });
-          const m = emojiSprite(slot.prize.icon, 0.9 + slot.tier * 0.25);
-          m.position.set(fx, 0.3, fz);
+          const m = prizeModel(slot.prize, 1.15);
+          m.position.set(fx, 0.6, fz);
           g.add(m);
-          arcTo(m, { x: fx, y: 0.7, z: fz }, 0.35, 1.2).then(() => wait(0.9)).then(() => g.remove(m));
+          arcTo(m, { x: fx, y: 0.9, z: fz }, 0.4, 1.4).then(() => wait(0.9)).then(() => g.remove(m));
           ctx.prize(slot, wp(g, fx, 1.8, fz));
           await wait(0.4);
         } else {
-          ctx.miss(wp(g, x, 1.6, z), '❔');
+          ctx.miss(wp(g, x, 1.6, z), 'puff');
           await wait(0.15);
         }
       }

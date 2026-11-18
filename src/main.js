@@ -9,6 +9,7 @@ import { createWorld } from './scene/world.js';
 import { AREAS, SECTOR_POS } from './scene/layout.js';
 import { clock, wait } from './scene/anim.js';
 import { burst } from './scene/kit.js';
+import { buildIcons, icon, MODEL_KEYS } from './scene/models.js';
 import { createCrops } from './scene/sectors/crops.js';
 import { createDairy } from './scene/sectors/dairy.js';
 import { createPoultry } from './scene/sectors/poultry.js';
@@ -39,6 +40,7 @@ ALL.forEach((id) => sectors[id].setUpgrade(state.upgrades[id] || 0));
 let busy = false;
 let selected = null;
 
+buildIcons();
 const ui = createUI(state, {
   select(id) { if (!busy) show(id); },
   bet(d) {
@@ -120,16 +122,17 @@ async function playRound(ids) {
       if (o.add !== false) ctx.add(o.value);
       ui.popup(world.project(o.pos), o);
       sfx('pop', o.tier);
-      if (o.tier >= 2) burst(world.scene, o.pos, o.tier >= 3 ? '⭐' : '✨', 6 + o.tier * 3, 0.5);
-      if (o.tier >= 3) {
-        world.shake(0.5 + (o.tier - 3) * 0.5, 0.5);
-        ui.confetti(o.tier >= 4 ? 110 : 50);
-        if (!o.noValue) ui.banner({ icon: o.icon, kicker: o.tier >= 4 ? 'J A C K P O T' : 'BIG FIND', title: o.label + '!', value: o.value }, o.tier >= 4 ? 2800 : 2000);
-        slowMo(o.tier >= 4 ? 2200 : 1300);
+      if (o.tier >= 1) burst(world.scene, o.pos, 3 + o.tier * 5, 0.4 + o.tier * 0.1);
+      if (o.tier >= 2) {
+        world.shake(0.5 + (o.tier - 2) * 0.5, 0.5);
+        ui.confetti(o.tier >= 3 ? 110 : 50);
+        if (!o.noValue) ui.banner({ icon: o.icon, kicker: o.tier >= 3 ? 'J A C K P O T' : 'RARE FIND', title: o.label + '!', value: o.value, tier: o.tier }, o.tier >= 3 ? 2800 : 2000);
+        slowMo(o.tier >= 3 ? 2200 : 1300);
       }
     },
     prize(slot, pos) { if (slot.prize) ctx.popup({ icon: slot.prize.icon, label: slot.prize.name, value: slot.value, tier: slot.tier, pos }); },
-    miss(pos, icon = '💨') { ui.popup(world.project(pos), { icon, miss: true }); sfx('miss'); },
+    ico: icon,
+    miss(pos, key = 'puff') { ui.popup(world.project(pos), { icon: key, miss: true }); sfx('miss'); },
     label: (pos) => ui.label(world.project(pos)),
   };
 
@@ -172,4 +175,4 @@ document.fonts?.ready.then(() => relayout());
 addEventListener('resize', () => setTimeout(relayout, 50));
 requestAnimationFrame(() => requestAnimationFrame(() => document.getElementById('splash').classList.add('gone')));
 if (import.meta.env.PROD && 'serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
-if (import.meta.env.DEV) Object.assign(window, { __ff: { state, world, sectors, playRound, clock } });
+if (import.meta.env.DEV) Object.assign(window, { __ff: { state, world, sectors, playRound, clock, icon, MODEL_KEYS } });

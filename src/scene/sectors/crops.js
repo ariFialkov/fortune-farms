@@ -1,6 +1,6 @@
 // CROPS — a combine drives back and forth through the field; prizes pop up as found.
 import * as THREE from 'three';
-import { rbox, cyl, at, rot, grp, plot, wp, puff, emojiSprite, mat, lerp, noShadow, cone , applyPlace, toLocal } from '../kit.js';
+import { rbox, cyl, at, rot, grp, plot, wp, puff, prizeModel, model, gust, mat, lerp, noShadow, cone , applyPlace, toLocal } from '../kit.js';
 import { tween, wait, ease, rand, scaleTo, arcTo, moveTo } from '../anim.js';
 
 const ROWS = [-6.9, -2.3, 2.3, 6.9];
@@ -92,10 +92,10 @@ export function createCrops(scene, pos) {
           const slot = rowSlots[next++];
           const px = x - dir * 1.8, pz = ROWS[r] + rand(-1.4, 1.4);
           if (slot.prize) {
-            const sp = emojiSprite(slot.prize.icon, 1.2 + slot.tier * 0.3);
-            sp.position.set(px, 0.5, pz);
+            const sp = prizeModel(slot.prize, 1.5, -Math.PI / 4);
+            sp.position.set(px, 0.8, pz);
             g.add(sp);
-            arcTo(sp, { x: px - dir * 0.8, y: 1.9, z: pz }, 0.35, 1.6).then(() => wait(0.5)).then(() => g.remove(sp));
+            arcTo(sp, { x: px - dir * 0.8, y: 1.5, z: pz }, 0.4, 1.8).then(() => wait(0.7)).then(() => g.remove(sp));
             ctx.prize(slot, wp(g, px, 2.2, pz));
           } else puff(g, { x: px, y: 0.4, z: pz }, { color: 0xb98a55, n: 5, size: 0.18 });
         }

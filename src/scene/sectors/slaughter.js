@@ -1,5 +1,5 @@
 // SLAUGHTERHOUSE — animals queue at the mysterious "free massages" door; cuts roll out on a conveyor.
-import { rbox, cyl, ball, at, rot, grp, plot, wp, puff, emojiSprite, mat, cow, pig, chicken, sign, noShadow , applyPlace, toLocal } from '../kit.js';
+import { rbox, cyl, ball, at, rot, grp, plot, wp, puff, prizeModel, model, gust, mat, cow, pig, chicken, sign, noShadow , applyPlace, toLocal } from '../kit.js';
 import { tween, wait, ease, rand, walkTo, moveTo, ticker, scaleTo } from '../anim.js';
 
 const DOOR = { x: -1.4, z: -0.6 };
@@ -26,8 +26,10 @@ export function createSlaughter(scene, pos) {
   b.add(board);
   // exit slot + certification plaques on the visible side walls
   b.add(at(rbox(0.12, 0.9, 1.5, 0x15101c, 0.05), 2.8, 1.45, 0));
-  const halal = grp(at(sign('☪ HALAL', 1.7, 0.6, { bg: '#1f9d55', fg: '#ffffff', font: 'bold 70px sans-serif', border: '#ffffff' }), 0, 0, 0.05), rbox(1.8, 0.7, 0.08, 0xffffff, 0.04));
-  const kosher = grp(at(sign('✡ KOSHER', 1.7, 0.6, { bg: '#2563c9', fg: '#ffffff', font: 'bold 70px sans-serif', border: '#ffffff' }), 0, 0, 0.05), rbox(1.8, 0.7, 0.08, 0xffffff, 0.04));
+  const halal = grp(at(sign('HALAL', 1.7, 0.6, { bg: '#1f9d55', fg: '#ffffff', font: 'bold 70px sans-serif', border: '#ffffff' }), 0, 0, 0.05), rbox(1.8, 0.7, 0.08, 0xffffff, 0.04));
+  const kosher = grp(at(sign('KOSHER', 1.7, 0.6, { bg: '#2563c9', fg: '#ffffff', font: 'bold 70px sans-serif', border: '#ffffff' }), 0, 0, 0.05), rbox(1.8, 0.7, 0.08, 0xffffff, 0.04));
+  halal.add(at(model('halal', 0.7), -1.25, 0, 0.12));
+  kosher.add(at(model('kosher', 0.7), -1.25, 0, 0.12));
   for (const p of [halal, kosher]) { p.position.set(1.75, 1.5, 2.36); p.visible = false; b.add(p); }
   b.position.set(DOOR.x, 0, DOOR.z - 2.3);
   g.add(b);
@@ -83,8 +85,8 @@ export function createSlaughter(scene, pos) {
       await tween(0.34, (k, raw) => { const w = Math.sin(raw * Math.PI * 4) * 0.035; b.scale.set(1 + w, 1 - w, 1 + w); }, ease.linear);
       b.scale.set(1, 1, 1);
       puff(g, { x: DOOR.x - 1.6, y: 5.7, z: DOOR.z - 3.5 }, { color: 0xffffff, n: 4, size: 0.28, up: 1.6 });
-      const meat = emojiSprite(slot.prize.icon, 1 + slot.tier * 0.22);
-      meat.position.set(beltX0, 1.65, BELT_Z);
+      const meat = prizeModel(slot.prize, 1.15);
+      meat.position.set(beltX0, 1.7, BELT_Z);
       g.add(meat);
       tween(1.3, (k) => { meat.position.x = beltX0 + (beltX1 - beltX0) * k; stripes.forEach((s) => { s.position.x = ((s.position.x + 2.4 + 0.02) % 5) - 2.4; }); }, ease.linear)
         .then(() => moveTo(meat, { y: 0.9 }, 0.15, ease.in)).then(() => g.remove(meat));

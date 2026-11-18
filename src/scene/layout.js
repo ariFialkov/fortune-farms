@@ -19,7 +19,7 @@ export const ROAD = { z0: 37, z1: 45 };       // public road along the front
 export const HOUSE = { x: -11, z: -6 };
 export const DRIVE = { x0: -2.6, x1: 1.6, z0: 1, z1: ROAD.z0 };   // driveway strip
 export const COURT = { x0: -17, x1: 1.6, z0: -1.4, z1: 4.6 };     // gravel forecourt
-export const OVERVIEW = { x: 5, z: 8 };
+export const OVERVIEW = { x: 4, z: 8 };
 
 // Stone walking paths (world polylines).
 export const WALKS = [
