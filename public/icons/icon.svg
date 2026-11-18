@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs><linearGradient id="s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fdcf2"/><stop offset="1" stop-color="#c8f4d2"/></linearGradient></defs>
+  <rect width="512" height="512" fill="url(#s)"/>
+  <circle cx="256" cy="150" r="78" fill="#ffd23f"/><circle cx="256" cy="150" r="104" fill="#ffd23f" opacity=".3"/>
+  <path d="M-20 340 Q256 210 532 340 V532 H-20Z" fill="#5cc93f"/>
+  <path d="M-20 400 Q256 290 532 400 V532 H-20Z" fill="#3fae2a"/>
+  <g transform="translate(256 318)">
+    <path d="M-92 80 V-18 L0 -84 L92 -18 V80Z" fill="#e5383b"/>
+    <path d="M-108 -12 L0 -100 L108 -12 L92 6 L0 -66 L-92 6Z" fill="#7b2f2a"/>
+    <rect x="-38" y="6" width="76" height="74" rx="8" fill="#fff8e7"/>
+    <path d="M-30 14 L30 72 M30 14 L-30 72" stroke="#e5383b" stroke-width="9" stroke-linecap="round"/>
+    <circle cx="0" cy="-36" r="15" fill="#fff8e7"/>
+  </g>
+  <circle cx="404" cy="396" r="46" fill="#ffc928" stroke="#e39a00" stroke-width="10"/>
+  <text x="404" y="417" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="58" text-anchor="middle" fill="#a86a00">$</text>
+</svg>

@@ -93,28 +93,28 @@ export function createWorld(canvas) {
   water.rotation.x = -Math.PI / 2;
   water.position.y = -1.6;
   scene.add(water);
-  const shallows = at(rbox(84, 1, 84, 0x8fe3f2, 0.5), 0, -2.05, 0);
+  const shallows = at(rbox(72, 1, 72, 0x8fe3f2, 0.5), 0, -2.05, 0);
   shallows.geometry = shallows.geometry.clone();
   scene.add(noShadow(shallows));
-  scene.add(at(rbox(77, 3, 77, 0xf5e2a8, 1.4), 0, -1.75, 0));
-  scene.add(at(rbox(73, 3, 73, 0x8fd65a, 1.4), 0, -1.5, 0));
+  scene.add(at(rbox(66, 3, 66, 0xf5e2a8, 1.4), 0, -1.75, 0));
+  scene.add(at(rbox(62, 3, 62, 0x8fd65a, 1.4), 0, -1.5, 0));
 
   // dirt paths between the plots
   const pathMat = mat(0xecd49a);
   for (const p of [-GRID / 2, GRID / 2]) {
-    scene.add(at(rbox(60, 0.1, 2.2, pathMat, 0.05), 0, 0.0, p));
-    scene.add(at(rbox(2.2, 0.1, 60, pathMat, 0.05), p, 0.0, 0));
+    scene.add(at(rbox(57, 0.1, 2.2, pathMat, 0.05), 0, 0.0, p));
+    scene.add(at(rbox(2.2, 0.1, 57, pathMat, 0.05), p, 0.0, 0));
   }
 
   // --- decor around the rim ---
   const rnd = seeded(7);
   const rim = [];
-  for (let i = 0; i < 70; i++) {
-    const side = Math.floor(rnd() * 4), t = rnd() * 66 - 33, d = 29.5 + rnd() * 5;
+  for (let i = 0; i < 84; i++) {
+    const side = Math.floor(rnd() * 4), t = rnd() * 58 - 29, d = 27 + rnd() * 2.8;
     const [x, z] = side === 0 ? [t, -d] : side === 1 ? [t, d] : side === 2 ? [-d, t] : [d, t];
     rim.push([x, z]);
   }
-  const blocked = (x, z) => (Math.hypot(x + 31, z + 31) < 6) || (Math.hypot(x - 9, z + 32) < 6) || (Math.hypot(x + 32, z - 9) < 5) || (x > 20 && z > 20);
+  const blocked = (x, z) => Math.hypot(x + 27.5, z + 27.5) < 4.5 || Math.hypot(x - 8, z + 28.5) < 6.5 || Math.hypot(x + 28.5, z - 9) < 4.5 || Math.hypot(x - 9, z - 28.5) < 4;
   for (const [x, z] of rim) {
     if (blocked(x, z)) continue;
     const r = rnd();
@@ -124,21 +124,21 @@ export function createWorld(canvas) {
   // flowers
   const flowerCols = [0xffffff, 0xffd84d, 0xff8fb1, 0xb08cff];
   for (let i = 0; i < 90; i++) {
-    const x = rnd() * 68 - 34, z = rnd() * 68 - 34;
+    const x = rnd() * 58 - 29, z = rnd() * 58 - 29;
     const onPlot = Math.abs(((x + 9 + 180) % 18) - 9) < 7.6 && Math.abs(((z + 9 + 180) % 18) - 9) < 7.6 && Math.abs(x) < 27 && Math.abs(z) < 27;
     if (onPlot) continue;
     if (Math.abs(Math.abs(x) - 9) < 1.4 || Math.abs(Math.abs(z) - 9) < 1.4) continue;
     scene.add(at(noShadow(ball(0.12, flowerCols[i % 4], 6)), x, 0.1, z));
   }
-  scene.add(at(windmill(), -31, 0, -31));
-  scene.add(rot(at(barn(), 9, 0, -32), 0, 0, 0));
-  scene.add(rot(at(farmhouse(), -32, 0, 9), 0, Math.PI / 2, 0));
-  scene.add(at(hayBale(), 13.5, 0, -30), at(hayBale(), 14.6, 0, -31.2), at(hayBale(), 3.5, 0, -30.5));
+  scene.add(at(windmill(), -27.8, 0, -27.8));
+  scene.add(rot(at(barn(), 9, 0, -28.4), 0, 0, 0));
+  scene.add(rot(at(farmhouse(), -28.4, 0, 9), 0, Math.PI / 2, 0));
+  scene.add(at(hayBale(), 13, 0, -27.6), at(hayBale(), 14.2, 0, -28.6), at(hayBale(), 3.6, 0, -27.8));
   // welcome sign at the bottom tip
   const s = sign('Fortune Farms', 4.4, 1.1, { bg: '#fff3d6', fg: '#d9534f' });
   const welcome = grp(at(s, 0, 1.6, 0.06), at(rbox(4.6, 1.3, 0.1, 0x8a5a2b, 0.05), 0, 1.6, 0), at(cyl(0.1, 0.1, 1.2, 0x8a5a2b, 8), -1.6, 0.6, 0), at(cyl(0.1, 0.1, 1.2, 0x8a5a2b, 8), 1.6, 0.6, 0));
   welcome.rotation.y = YAW;
-  scene.add(at(welcome, 9.2, 0, 30.5));
+  scene.add(at(welcome, 9, 0, 28.6));
 
   // --- camera rig ---
   const rig = { target: new THREE.Vector3(0, 0, 0), dist: 120, radius: 40, focus: null };
@@ -158,9 +158,9 @@ export function createWorld(canvas) {
   function goal(id) {
     const portrait = size.h > size.w;
     elev = portrait ? 0.9 : 0.72;
-    if (!id) return { target: new THREE.Vector3(0, 0, 0), dist: fit(portrait ? 40 : 47, 4) };
+    if (!id) return { target: new THREE.Vector3(0, 0, 0), dist: fit(portrait ? 37 : 39, 4) };
     const [x, z] = SECTOR_POS[id];
-    return { target: new THREE.Vector3(x, 0, z), dist: fit(portrait ? 11.5 : 12.5, 5) };
+    return { target: new THREE.Vector3(x, 0, z), dist: fit(portrait ? 10.5 : 10.5, 2.5) };
   }
   function place() {
     const v = THREE.MathUtils.degToRad(FOV) / 2;
@@ -189,6 +189,7 @@ export function createWorld(canvas) {
     rig.focus = id;
     const g = goal(id), from = { t: rig.target.clone(), d: rig.dist }, my = ++camAnim;
     // camera moves use real time so they feel the same at any game speed
+    if (dur <= 0) { rig.target.copy(g.target); rig.dist = g.dist; return Promise.resolve(); }
     const t0 = performance.now();
     return new Promise((res) => {
       const step = () => {

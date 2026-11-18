@@ -17,16 +17,22 @@ export function createApiary(scene, pos) {
   g.position.set(pos[0], 0, pos[1]);
   scene.add(g);
   g.add(plot(15, 15, 0x9bdc6b));
-  for (const [x, z, s] of [[-5.5, -5.5, 1.2], [5.6, -5.2, 1], [-5.8, 4.8, 0.9], [5.2, 5.6, 1.1]]) g.add(at(bush(s, 0x5cbd4c), x, 0, z));
+  for (const [x, z, s] of [[5.6, -5.2, 1], [-5.8, 4.8, 0.9], [5.2, 5.6, 1.1]]) g.add(at(bush(s, 0x5cbd4c), x, 0, z));
   for (let i = 0; i < 26; i++) g.add(at(noShadow(ball(0.14, [0xffd23f, 0xff8fb1, 0xffffff, 0xb08cff][i % 4], 6)), rand(-6.5, 6.5), 0.18, rand(-6.5, 6.5)));
 
-  const CX = -0.6, CZ = -0.8, TOP = 4.3;
-  // platform with four hives over the funnel
-  for (const x of [-2.2, 2.2]) for (const z of [-2.2, 2.2]) g.add(at(cyl(0.16, 0.2, TOP, 0x8a5a2b, 8), CX + x, TOP / 2, CZ + z));
-  g.add(at(rbox(5, 0.25, 5, 0xc9945a, 0.1), CX, TOP, CZ));
-  [[-1.1, -1.1, 0xffd23f], [1.1, -1.1, 0xffb347], [-1.1, 1.1, 0xffb347], [1.1, 1.1, 0xffd23f]].forEach(([x, z, c]) => g.add(at(hive(c), CX + x, TOP + 0.12, CZ + z)));
-  g.add(at(cyl(2.3, 0.35, 1.7, 0xc9ced6, 20), CX, TOP - 0.95, CZ));
-  g.add(at(cyl(0.3, 0.24, 0.6, 0x9aa3ad, 12), CX, TOP - 2.05, CZ));
+  const HX = -2.4, HZ = -2.6, TOP = 4.3;   // hive tower
+  const CX = 1.4, CZ = 1.2;                // collection pot, out front where you can see it
+  for (const x of [-2.2, 2.2]) for (const z of [-2.2, 2.2]) g.add(at(cyl(0.16, 0.2, TOP, 0x8a5a2b, 8), HX + x, TOP / 2, HZ + z));
+  g.add(at(rbox(5, 0.25, 5, 0xc9945a, 0.1), HX, TOP, HZ));
+  [[-1.1, -1.1, 0xffd23f], [1.1, -1.1, 0xffb347], [-1.1, 1.1, 0xffb347], [1.1, 1.1, 0xffd23f]].forEach(([x, z, c]) => g.add(at(hive(c), HX + x, TOP + 0.12, HZ + z)));
+  g.add(at(cyl(2.3, 0.35, 1.7, 0xc9ced6, 20), HX, TOP - 0.95, HZ));
+  // pipe from the funnel down to the spout over the pot
+  const SPOUT_Y = 2.75;
+  const pa = new THREE.Vector3(HX, TOP - 1.9, HZ), pb = new THREE.Vector3(CX, SPOUT_Y + 0.35, CZ);
+  const pipe = cyl(0.26, 0.26, pa.distanceTo(pb) + 0.3, 0xc9ced6, 12);
+  pipe.position.copy(pa).lerp(pb, 0.5);
+  pipe.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), pb.clone().sub(pa).normalize());
+  g.add(pipe, at(ball(0.32, 0xc9ced6, 12), pb.x, pb.y, pb.z), at(cyl(0.22, 0.16, 0.5, 0x9aa3ad, 12), CX, SPOUT_Y + 0.1, CZ));
   // scale + pot
   g.add(at(rbox(3, 0.35, 3, 0xe5533d, 0.12), CX, 0.25, CZ), at(rbox(2.6, 0.12, 2.6, 0xc9ced6, 0.05), CX, 0.48, CZ));
   g.add(at(rbox(1.2, 0.8, 0.2, 0xfdf8ee, 0.08), CX, 0.55, CZ + 1.7));
@@ -45,7 +51,6 @@ export function createApiary(scene, pos) {
   stream.castShadow = false;
   stream.visible = false;
   g.add(stream);
-  const SPOUT_Y = TOP - 2.35;
 
   const bees = Array.from({ length: 9 }, (_, i) => {
     const b = noShadow(grp(ball(0.09, 0xffd23f, 6), at(ball(0.06, 0x3a2a1a, 6), -0.08, 0, 0)));
@@ -55,7 +60,7 @@ export function createApiary(scene, pos) {
   });
   ticker((dt, t) => bees.forEach((b) => {
     const u = b.userData;
-    b.position.set(CX + Math.cos(t * u.s + u.p) * u.r, u.y + Math.sin(t * 5 + u.p) * 0.25, CZ + Math.sin(t * u.s + u.p) * u.r);
+    b.position.set(HX + Math.cos(t * u.s + u.p) * u.r, u.y + Math.sin(t * 5 + u.p) * 0.25, HZ + Math.sin(t * u.s + u.p) * u.r);
   }));
 
   const setFill = (l) => { fill.scale.y = Math.max(0.02, Math.min(1.35, 0.1 + l * 0.125)); fill.position.y = 0.64 + fill.scale.y / 2; };
@@ -68,7 +73,7 @@ export function createApiary(scene, pos) {
     const madAt = pz.mad ? Math.min(0.9, dur * 0.35) : Infinity;
     honeyMat.color.setHex(HONEY); honeyMat.emissive.setHex(0x7a4a00); honeyMat.emissiveIntensity = 0.35;
     setFill(0);
-    const label = ctx.label(wp(g, CX, 3.1, CZ + 2.2));
+    const label = ctx.label(wp(g, CX + 1.5, 0.2, CZ + 1.5));
     stream.visible = true;
     ctx.sfx('pour');
     let shown = 0, isMad = false, drip = 0;
