@@ -1,7 +1,7 @@
 // Offline support: network-first for the page, stale-while-revalidate for assets.
-const CACHE = 'fortune-farms-v1';
+const CACHE = 'fortune-farms-v2';
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['./', './manifest.webmanifest'])).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(['./', './manifest.json'])).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', (e) => {
   e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
