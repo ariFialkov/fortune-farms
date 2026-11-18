@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+  <title>Fortune Farms</title>
+  <meta name="description" content="Fortune Farms — a 3D farm of fortune. Roll the harvest, run the farm." />
+  <meta name="theme-color" content="#63cfe9" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Fortune Farms" />
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+</head>
+<body>
+  <canvas id="scene"></canvas>
+  <div id="ui">
+    <div id="tags"></div>
+    <div id="labels"></div>
+    <div id="popups"></div>
+    <header id="topbar"></header>
+    <div id="roundbar" hidden></div>
+    <footer id="hud"></footer>
+    <section id="panel" hidden></section>
+    <div id="banner"></div>
+    <div id="confetti"></div>
+    <div id="modal" hidden></div>
+    <div id="toast"></div>
+  </div>
+  <div id="splash"><div class="logo big">Fortune<span>Farms</span></div><div class="loading">Planting seeds…</div></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
