@@ -96,6 +96,47 @@ export function burst(parent, pos, n = 8, size = 0.5) {
   }
 }
 
+// --- tiered prize effects ---
+const fxMat = (c, op = 1) => new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: op, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
+const gemGeo = new THREE.OctahedronGeometry(1);
+// coloured gems flung outward
+export function sparks(parent, pos, color, n = 8, size = 0.16) {
+  const m = new THREE.MeshLambertMaterial({ color, emissive: color, emissiveIntensity: 0.9 });
+  for (let i = 0; i < n; i++) {
+    const s = new THREE.Mesh(gemGeo, m);
+    s.position.copy(pos);
+    parent.add(s);
+    const a = rand(Math.PI * 2), r = rand(0.7, 2.4), h = rand(1.2, 3), sz = size * rand(0.6, 1.2);
+    const x0 = pos.x, y0 = pos.y, z0 = pos.z;
+    tween(rand(0.5, 0.95), (k, raw) => {
+      s.position.set(x0 + Math.cos(a) * r * k, y0 + Math.sin(raw * Math.PI) * h, z0 + Math.sin(a) * r * k);
+      s.rotation.x += 0.25; s.rotation.y += 0.2;
+      s.scale.setScalar(Math.max(0.001, sz * (1 - raw * raw)));
+    }, ease.out).then(() => parent.remove(s));
+  }
+}
+// a ring of light racing out across the ground
+export function ringPulse(parent, pos, color, radius = 3.5, dur = 0.7) {
+  const m = fxMat(color, 0.9);
+  const ring = new THREE.Mesh(geo('fxring', () => new THREE.RingGeometry(0.82, 1, 40)), m);
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.set(pos.x, 0.25, pos.z);
+  parent.add(ring);
+  tween(dur, (k, raw) => { ring.scale.setScalar(0.2 + radius * k); m.opacity = 0.9 * (1 - raw * raw); }, ease.out).then(() => { parent.remove(ring); m.dispose(); });
+}
+// a pillar of light over the prize
+export function lightBeam(parent, pos, color, height = 14, width = 1.1, dur = 1.6) {
+  const m = fxMat(color, 0.0);
+  const beam = new THREE.Mesh(geo('fxbeam', () => new THREE.CylinderGeometry(0.55, 1, 1, 20, 1, true)), m);
+  beam.position.set(pos.x, height / 2, pos.z);
+  parent.add(beam);
+  tween(dur, (k, raw) => {
+    const inn = Math.min(1, raw * 6), out = 1 - Math.max(0, (raw - 0.55) / 0.45);
+    beam.scale.set(width * (0.4 + inn * 0.6) * (1 + Math.sin(raw * 40) * 0.05), height, width * (0.4 + inn * 0.6));
+    m.opacity = 0.42 * inn * out;
+  }, ease.linear).then(() => { parent.remove(beam); m.dispose(); });
+}
+
 // The 3D model for a prize: pops in with a spin, sized up a little for rarer tiers.
 export function prizeModel(prize, size = 1, face = Math.PI / 4) {
   const m = model(prize.icon, size * (1 + prize.tier * 0.18));

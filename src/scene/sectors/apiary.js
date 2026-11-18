@@ -95,12 +95,12 @@ export function createApiary(scene, pos) {
       stream.position.y = (SPOUT_Y + top) / 2;
       setFill(litres);
       needle.rotation.z = -Math.min(1.3, litres * 0.13) + Math.sin(raw * 60) * 0.03;
-      const v = Math.round(valueAt(litres));
-      if (v > shown) { ctx.add(v - shown); shown = v; }
+      const v = Math.round(valueAt(litres) * 100) / 100;
+      if (v > shown) { ctx.add(Math.round((v - shown) * 100) / 100); shown = v; }
       label.set(`${ctx.ico(isMad ? 'madhoney' : 'honey')} <b>${litres.toFixed(2)} L</b><i>+${shown.toLocaleString()}</i>`);
       if ((drip += 1) % 9 === 0) { ctx.sfx('tick'); puff(g, { x: CX + rand(-0.4, 0.4), y: top + 0.1, z: CZ + rand(-0.4, 0.4) }, { color: isMad ? MAD : HONEY, n: 1, size: 0.1, up: 0.5 }); }
     }, ease.linear);
-    if (slot.value > shown) ctx.add(slot.value - shown);
+    if (slot.value > shown) ctx.add(Math.round((slot.value - shown) * 100) / 100);
     stream.visible = false;
     // last drips
     for (let i = 0; i < 2; i++) { puff(g, { x: CX, y: SPOUT_Y - 0.2, z: CZ }, { color: isMad ? MAD : HONEY, n: 1, size: 0.1, up: -1.2, spread: 0.05 }); await wait(0.18); }

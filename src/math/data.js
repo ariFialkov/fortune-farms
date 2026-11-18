@@ -4,7 +4,8 @@
 // solves the hit-rate so each sector returns exactly RTP on its stake.
 
 export const RTP = 0.96;
-export const BETS = [100, 200, 500, 1000, 2500, 5000];
+export const BETS = [5, 10, 25, 50, 100, 200, 500, 1000, 2500, 5000];
+export const DEFAULT_BET = 100;
 export const START_BALANCE = 100000;
 
 // four value tiers: 0 common, 1 fine, 2 rare, 3 legendary

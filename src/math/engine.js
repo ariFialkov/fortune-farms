@@ -41,18 +41,20 @@ function rollSector(model, bet, rng) {
       for (const e of g.entries) {
         if ((r -= e.p) < 0) { prize = e.prize; break; }
       }
-      let value = prize ? Math.round(prize.v * model.valueMult * bet) : 0, tier = prize ? prize.tier : 0, litres;
+      // amounts are computed in hundredths of a coin so bets below 100 pay exactly
+      let cents = prize ? Math.round(prize.v * model.valueMult * bet * 100) : 0, tier = prize ? prize.tier : 0, litres;
       if (prize?.range) {
         // continuous prize: draw the amount inside its band (mean == table value, so RTP is unchanged)
         litres = Math.round((prize.range[0] + rng() * (prize.range[1] - prize.range[0])) * 100) / 100;
-        value = Math.round(litres * prize.rate * model.valueMult * bet);
+        cents = Math.round(litres * prize.rate * model.valueMult * bet * 100);
         tier = tierOf(litres * prize.rate);
       }
-      win += value;
+      win += cents;
+      const value = cents / 100;
       slots.push({ g: gi, prize, value, tier, litres });
     }
   });
-  return { id: model.id, upgrade: model.upgrade, stake: model.stake * bet, slots, win };
+  return { id: model.id, upgrade: model.upgrade, stake: model.stake * bet, slots, win: win / 100 };
 }
 
 // Exact probability that every need of a combo is met, given resolved models.
@@ -137,10 +139,10 @@ export function rollRound(sectorIds, bet, upgrades = {}, rng = cryptoRng) {
   const sectors = sectorIds.map((id) => rollSector(pl.models[id], bet, rng));
   const bySector = Object.fromEntries(sectors.map((s) => [s.id, s]));
   const totalStake = pl.stakeMult * bet;
-  const combos = pl.combos.filter((c) => comboMet(c, bySector)).map((c) => ({ combo: c, bonus: Math.round(c.bonus * totalStake) }));
-  const sectorWin = sectors.reduce((s, x) => s + x.win, 0);
-  const comboWin = combos.reduce((s, x) => s + x.bonus, 0);
-  return { sectorIds, bet, sectors, combos, totalStake, sectorWin, comboWin, totalWin: sectorWin + comboWin };
+  const combos = pl.combos.filter((c) => comboMet(c, bySector)).map((c) => ({ combo: c, bonus: Math.round(c.bonus * totalStake * 100) / 100 }));
+  const sum = (list, key) => Math.round(list.reduce((s, x) => s + x[key] * 100, 0)) / 100;
+  const sectorWin = sum(sectors, 'win'), comboWin = sum(combos, 'bonus');
+  return { sectorIds, bet, sectors, combos, totalStake, sectorWin, comboWin, totalWin: Math.round((sectorWin + comboWin) * 100) / 100 };
 }
 
 // Info for UI: paytable and headline numbers for a sector under an upgrade.
