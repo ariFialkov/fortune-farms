@@ -16,7 +16,7 @@ export function createApiary(scene, pos) {
   const g = grp();
   g.position.set(pos[0], 0, pos[1]);
   scene.add(g);
-  g.add(plot(15, 15, 0x9bdc6b));
+  g.add(at(cyl(7.6, 7.6, 0.06, 0xa6e070, 28), 0, 0.03, 0));
   for (const [x, z, s] of [[5.6, -5.2, 1], [-5.8, 4.8, 0.9], [5.2, 5.6, 1.1]]) g.add(at(bush(s, 0x5cbd4c), x, 0, z));
   for (let i = 0; i < 26; i++) g.add(at(noShadow(ball(0.14, [0xffd23f, 0xff8fb1, 0xffffff, 0xb08cff][i % 4], 6)), rand(-6.5, 6.5), 0.18, rand(-6.5, 6.5)));
 

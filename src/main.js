@@ -72,7 +72,7 @@ function show(id) {
 const anchor = new THREE.Vector3();
 world.onFrame(() => {
   if (busy || selected) return;
-  for (const id of ALL) ui.placeTag(id, world.project(anchor.set(SECTOR_POS[id][0], 3.2, SECTOR_POS[id][1])));
+  for (const id of ALL) ui.placeTag(id, world.project(anchor.set(SECTOR_POS[id][0], 3.6, SECTOR_POS[id][1])));
 });
 
 async function refill() {

@@ -9,8 +9,8 @@ export function createDairy(scene, pos) {
   const g = grp();
   g.position.set(pos[0], 0, pos[1]);
   scene.add(g);
-  g.add(plot(15, 15, 0x86d15c));
   g.add(at(rbox(8.4, 0.1, 6.6, 0xa7dc6e, 0.05), -2.9, 0.1, -3.4));
+  g.add(at(rbox(6.4, 0.1, 6.2, 0xd8d3c8, 0.05), 3.4, 0.06, 3.6));
   // pen fence (gap on the east side for the gate)
   g.add(at(fence(8.6), -2.9, 0, -6.8), at(fence(8.6), -2.9, 0, 0), rot(at(fence(6.8), -7.2, 0, -3.4), 0, Math.PI / 2));
   g.add(rot(at(fence(3.2), 1.4, 0, -5.2), 0, Math.PI / 2));

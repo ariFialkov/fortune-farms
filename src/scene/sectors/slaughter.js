@@ -10,7 +10,6 @@ export function createSlaughter(scene, pos) {
   const g = grp();
   g.position.set(pos[0], 0, pos[1]);
   scene.add(g);
-  g.add(plot(15, 15, 0x8acc5e));
   g.add(at(rbox(1.8, 0.1, 7, 0xecd49a, 0.05), DOOR.x, 0.1, 3), at(rbox(6.6, 0.1, 1.8, 0xecd49a, 0.05), -4.2, 0.1, 6.2));
 
   const b = grp();

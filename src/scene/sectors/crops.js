@@ -9,7 +9,6 @@ export function createCrops(scene, pos) {
   const g = grp();
   g.position.set(pos[0], 0, pos[1]);
   scene.add(g);
-  g.add(plot(15, 13, 0x7fcb52));
   g.add(at(rbox(13.6, 0.3, 10.6, 0x9a6b3f, 0.15), 0, 0.12, 0));
   for (let i = 0; i < 9; i++) g.add(at(rbox(13.2, 0.12, 0.34, 0x855a33, 0.06), 0, 0.3, -4.8 + i * 1.2));
 

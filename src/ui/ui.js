@@ -59,7 +59,7 @@ export function createUI(state, on) {
     for (const id of ALL) {
       const info = sectorInfo(id, state.upgrades), s = SECTORS[id];
       tags[id].classList.toggle('up', (state.upgrades[id] || 0) > 0);
-      tags[id].innerHTML = `<span class="ti">${s.icon}</span><span class="tn">${s.name}</span><span class="ts">${coin}${short(info.stakeMult * bet())} · 🏆 <b>${short(info.topMult * info.stakeMult * bet())}</b></span>`;
+      tags[id].innerHTML = `<span class="ti">${s.icon}</span><span class="tn">${s.name}</span><span class="ts"><span>${coin}${short(info.stakeMult * bet())}</span><i> · </i><span>🏆 <b>${short(info.topMult * info.stakeMult * bet())}</b></span></span>`;
     }
   }
   const placeTag = (id, p) => { tags[id].style.transform = `translate(calc(${p.x}px - 50%), calc(${p.y}px - 100% - 10px))`; };

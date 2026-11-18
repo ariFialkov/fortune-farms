@@ -8,12 +8,11 @@ export function createOrchard(scene, pos) {
   const g = grp();
   g.position.set(pos[0], 0, pos[1]);
   scene.add(g);
-  g.add(plot(15, 15, 0x7ccf58));
   const trees = [];
   for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) {
     const t = tree(1.05, [0x4fb04a, 0x5cbd4c, 0x49a84f][(r + c) % 3], FRUIT_COLS[r * 3 + c]);
-    t.position.set(-4.6 + c * 4.6, 0, -4.6 + r * 4.6);
-    g.add(noShadow(at(rbox(2.2, 0.08, 2.2, 0x6bbf4c, 0.04), t.position.x, 0.12, t.position.z)));
+    t.position.set(-4.9 + c * 4.7 + (r === 1 ? 1.5 : r === 2 ? -0.5 : 0) + rand(-0.4, 0.4), 0, -4.6 + r * 4.4 + rand(-0.5, 0.5));
+    t.scale.setScalar(rand(0.9, 1.12));
     g.add(t);
     trees.push(t);
   }

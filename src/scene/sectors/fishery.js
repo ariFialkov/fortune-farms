@@ -13,7 +13,6 @@ export function createFishery(scene, pos) {
   const g = grp();
   g.position.set(pos[0], 0, pos[1]);
   scene.add(g);
-  g.add(plot(15, 15, 0x8fd65a));
   g.add(at(cyl(6.6, 6.6, 0.2, 0xf5e2a8, 40), -2, 0.06, -1.8));
   const pond = at(cyl(6.1, 6.1, 0.2, mat(0x45b5e8, { transparent: true, opacity: 0.92 }), 40), -2, 0.12, -1.8);
   pond.castShadow = false;

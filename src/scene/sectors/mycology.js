@@ -1,5 +1,6 @@
 // MYCOLOGY — farmers walk truffle pigs on leashes; prizes pop up as each pig finds them.
 import * as THREE from 'three';
+import { yardSpot, gate } from '../layout.js';
 import { rbox, cyl, ball, cone, at, rot, grp, plot, wp, puff, emojiSprite, farmer, pig, pine, tree, prism, noShadow } from '../kit.js';
 import { tween, wait, ease, rand, walkTo, ticker, arcTo } from '../anim.js';
 
@@ -11,8 +12,7 @@ export function createMycology(scene, pos) {
   const g = grp();
   g.position.set(pos[0], 0, pos[1]);
   scene.add(g);
-  g.add(plot(15, 15, 0x5fae4f));
-  g.add(at(rbox(13.4, 0.1, 13.4, 0x7a6248, 0.05), 0, 0.1, 0), at(rbox(12, 0.1, 12, 0x6b8f4a, 0.05), 0.3, 0.13, 0.3));
+  g.add(at(cyl(8.2, 8.2, 0.1, 0x7a6248, 28), 0.4, 0.06, 0.4), at(cyl(7.4, 7.4, 0.1, 0x6b8f4a, 28), 0.6, 0.09, 0.6));
   // forest backdrop
   [[-6.2, -6.3, 1.25], [-3.4, -6.6, 1.05], [-0.4, -6.4, 1.3], [2.6, -6.6, 1.0], [5.6, -6.2, 1.2], [-6.5, -3.2, 1.1], [-6.4, 0.2, 0.95], [-6.6, 3.4, 1.15]].forEach(([x, z, s], i) => g.add(at(i % 3 === 1 ? tree(s * 0.9, 0x3f9b55) : pine(s), x, 0, z)));
   // logs, stumps and decorative mushrooms
@@ -30,12 +30,16 @@ export function createMycology(scene, pos) {
     f.scale.setScalar(0.85);
     const home = { x: -2.6 + i * 1.5, z: -3.4 + i * 0.5 };
     p.position.set(home.x + 1.2, 0, home.z + 0.9);
-    f.position.set(home.x, 0, home.z);
-    f.rotation.y = p.rotation.y = -0.6;
+    const [yx, yz] = yardSpot(304 + i * 17, 6.2 + (i % 2) * 1.2), [gx, gz] = gate('mycology');
+    const yard = { x: yx - pos[0], z: yz - pos[1] }, out = { x: gx - pos[0], z: gz - pos[1] };
+    f.position.set(yard.x, 0, yard.z);
+    f.rotation.y = -Math.PI / 4;
+    p.rotation.y = -0.6;
     const leash = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]), new THREE.LineBasicMaterial({ color: 0x5a3a1e }));
     leash.frustumCulled = false;
+    leash.visible = false;
     g.add(p, f, leash);
-    return { p, f, leash, zone, home };
+    return { p, f, leash, zone, home, yard, out };
   });
   ticker(() => teams.forEach(({ p, f, leash }) => {
     const a = leash.geometry.attributes.position;
@@ -50,6 +54,13 @@ export function createMycology(scene, pos) {
   };
 
   async function play(res, ctx) {
+    // the foragers jog over from the farmhouse to collect their pigs
+    await Promise.all(teams.map(async (t, ti) => {
+      await wait(ti * 0.12);
+      await walkTo(t.f, t.out.x, t.out.z, 15, 0.14);
+      await walkTo(t.f, t.home.x, t.home.z, 17, 0.14);
+      t.leash.visible = true;
+    }));
     await Promise.all(teams.map(async (t, ti) => {
       await wait(ti * 0.35 + rand(0.3));
       for (let j = 0; j < 3; j++) {
@@ -80,9 +91,10 @@ export function createMycology(scene, pos) {
     }));
     await wait(0.4);
     await Promise.all(teams.map(async (t) => {
-      walkTo(t.f, t.home.x, t.home.z, 7, 0.1);
       await walkTo(t.p, t.home.x + 1.2, t.home.z + 0.9, 7, 0.14);
-      t.f.rotation.y = t.p.rotation.y = -0.6;
+      t.p.rotation.y = -0.6;
+      t.leash.visible = false;
+      walkTo(t.f, t.out.x, t.out.z, 11, 0.12).then(() => walkTo(t.f, t.yard.x, t.yard.z, 9, 0.12)).then(() => { t.f.rotation.y = -Math.PI / 4; });
     }));
   }
 

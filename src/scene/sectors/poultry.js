@@ -26,7 +26,6 @@ export function createPoultry(scene, pos) {
   const g = grp();
   g.position.set(pos[0], 0, pos[1]);
   scene.add(g);
-  g.add(plot(15, 15, 0x93d867));
   g.add(at(rbox(13, 0.1, 1.5, 0xecd49a, 0.05), 0, 0.1, ROW_Z));
 
   // coop

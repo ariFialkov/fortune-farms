@@ -1,6 +1,7 @@
 // VINEYARD — a gust knocks grapes into the tubs, farmers stomp, bottles (maybe) pop out.
+import { yardSpot, gate } from '../layout.js';
 import { rbox, cyl, ball, at, rot, grp, plot, wp, puff, emojiSprite, mat, farmer, noShadow } from '../kit.js';
-import { tween, wait, ease, rand, moveTo, arcTo, ticker } from '../anim.js';
+import { tween, wait, ease, rand, moveTo, arcTo, ticker, walkTo } from '../anim.js';
 
 const TUB_Z = 2.6;
 const tubX = (i) => -5.5 + i * 2.2;
@@ -9,7 +10,6 @@ export function createVineyard(scene, pos) {
   const g = grp();
   g.position.set(pos[0], 0, pos[1]);
   scene.add(g);
-  g.add(plot(15, 15, 0x8ed35f));
   // terraced hill at the back with three vine rows
   g.add(at(rbox(14.4, 0.5, 6.4, 0x7cc653, 0.25), 0, 0.25, -3.8), at(rbox(14, 0.5, 3.6, 0x6fbd4b, 0.25), 0, 0.7, -5));
   const vines = [];
@@ -45,9 +45,12 @@ export function createVineyard(scene, pos) {
     tubs.push(tub);
     const f = farmer([0xe5533d, 0x2ec4b6, 0xffb347, 0x9b5de5, 0xe5533d, 0x2ec4b6][i], 0x3f6fb5);
     f.scale.setScalar(0.85);
-    f.userData.home = { x, y: 0, z: 0.6 };
-    f.position.set(x, 0, 0.6);
-    f.rotation.y = -Math.PI / 2;
+    const [yx, yz] = yardSpot(118 + i * 15, 6.2 + (i % 2) * 1.3), [gx, gz] = gate('vineyard');
+    f.userData.spot = { x, y: 0, z: 0.6 };
+    f.userData.yard = { x: yx - pos[0], z: yz - pos[1] };
+    f.userData.out = { x: gx - pos[0], z: gz - pos[1] };
+    f.position.set(f.userData.yard.x, 0, f.userData.yard.z);
+    f.rotation.y = -Math.PI / 4;
     g.add(f);
     farmers.push(f);
   }
@@ -55,6 +58,13 @@ export function createVineyard(scene, pos) {
   let gust = 0;
 
   async function play(res, ctx) {
+    // the stompers jog over from the farmhouse while the gust does its work
+    const arrive = Promise.all(farmers.map(async (f, i) => {
+      await wait(i * 0.08);
+      await walkTo(f, f.userData.out.x, f.userData.out.z, 15, 0.14);
+      await walkTo(f, f.userData.spot.x + 3.5, 5.2, 18, 0.14);
+      await walkTo(f, f.userData.spot.x, f.userData.spot.z + 0.01, 12, 0.14);
+    }));
     // gust knocks the grapes off the vines and into the tubs
     ctx.sfx('wind');
     tween(0.4, (k) => { gust = k; });
@@ -76,6 +86,7 @@ export function createVineyard(scene, pos) {
       tub.userData.must.visible = true;
     }));
     tween(0.4, (k) => { gust = 1 - k; });
+    await arrive;
     // farmers hop in and stomp
     await Promise.all(farmers.map(async (f, i) => { await wait(i * 0.05); await arcTo(f, { x: tubX(i), y: 0.45, z: TUB_Z }, 0.35, 1.3); }));
     let stomping = true;
@@ -115,8 +126,8 @@ export function createVineyard(scene, pos) {
     stomping = false;
     await wait(0.5);
     tubs.forEach((t) => { t.userData.must.visible = false; });
-    await Promise.all(farmers.map((f) => arcTo(f, f.userData.home, 0.35, 1.2)));
-    farmers.forEach((f) => { f.rotation.y = -Math.PI / 2; });
+    await Promise.all(farmers.map((f) => arcTo(f, { x: f.userData.spot.x, y: 0, z: 4.6 }, 0.35, 1.2)));
+    farmers.forEach((f) => walkTo(f, f.userData.out.x, f.userData.out.z, 11, 0.12).then(() => walkTo(f, f.userData.yard.x, f.userData.yard.z, 9, 0.12)).then(() => { f.rotation.y = -Math.PI / 4; }));
   }
 
   return { group: g, setUpgrade() {}, play };
